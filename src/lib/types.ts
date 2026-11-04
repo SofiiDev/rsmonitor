@@ -127,7 +127,8 @@ export type ContactEventKind =
   | 'oportunidad'
   | 'estado_relacion'
   | 'no_contactar'
-  | 'actividad_eliminada';
+  | 'actividad_eliminada'
+  | 'nota';
 
 /** Registro automático de lo que pasa con un contacto (complementa sus actividades). */
 export interface ContactEvent {

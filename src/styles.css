@@ -1676,3 +1676,32 @@ button.tl-body:hover {
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   overflow-wrap: anywhere;
 }
+
+
+/* Notas en el historial */
+.note-composer {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.note-composer .label {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+.tl-note-item .tl-dot {
+  border-color: var(--accent);
+}
+.tl-note-text {
+  white-space: pre-wrap;
+  border-left-color: var(--accent);
+}
+.tl-note strong {
+  font-weight: 600;
+}
+.tl-body .spread .btn-icon {
+  width: 32px;
+  min-height: 32px;
+}

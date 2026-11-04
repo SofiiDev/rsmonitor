@@ -15,6 +15,7 @@ export const EVENT_LABEL: Record<ContactEventKind, string> = {
   estado_relacion: 'Cambio de estado de la relación',
   no_contactar: 'Marcado como "no contactar"',
   actividad_eliminada: 'Actividad eliminada',
+  nota: 'Nota',
 };
 
 export const RECONTACT_KINDS: ContactEventKind[] = [

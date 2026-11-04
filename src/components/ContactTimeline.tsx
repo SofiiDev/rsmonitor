@@ -1,4 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
+import { useStore } from '../lib/store';
+import { useToast } from './Toast';
+import { Icon } from './Icon';
 import type { Activity, Contact, ContactEvent } from '../lib/types';
 import { CATEGORY_OF } from '../lib/options';
 import { EVENT_LABEL, RECONTACT_KINDS } from '../lib/history';
@@ -6,11 +9,12 @@ import { formatShort, fromISO, relativeDay, today } from '../lib/dates';
 import { isDone } from '../lib/metrics';
 import { activityKind, formatTime } from './Bits';
 
-type Filter = 'todo' | 'interacciones' | 'recontactos' | 'cambios';
+type Filter = 'todo' | 'interacciones' | 'notas' | 'recontactos' | 'cambios';
 
 const FILTERS: { id: Filter; label: string }[] = [
   { id: 'todo', label: 'Todo' },
   { id: 'interacciones', label: 'Interacciones' },
+  { id: 'notas', label: 'Notas' },
   { id: 'recontactos', label: 'Recontactos' },
   { id: 'cambios', label: 'Cambios en la ficha' },
 ];
@@ -55,9 +59,11 @@ export function ContactTimeline({
       .filter((it) => {
         if (filter === 'todo') return true;
         if (filter === 'interacciones') return it.kind === 'activity';
+        if (filter === 'notas')
+          return it.kind === 'event' ? it.event.kind === 'nota' : Boolean(it.activity.result || it.activity.notes);
         if (filter === 'recontactos')
           return it.kind === 'event' ? RECONTACT_KINDS.includes(it.event.kind) : it.activity.type === 'contacto';
-        return it.kind === 'event' && !RECONTACT_KINDS.includes(it.event.kind);
+        return it.kind === 'event' && it.event.kind !== 'nota' && !RECONTACT_KINDS.includes(it.event.kind);
       })
       .sort((a, b) => b.when.localeCompare(a.when));
   }, [activities, events, filter, t]);
@@ -67,6 +73,7 @@ export function ContactTimeline({
     interacciones: done.length,
     reuniones: done.filter((a) => a.type === 'reunion_cliente' || a.type === 'visita' || a.type === 'prelisting').length,
     recontactos: events.filter((e) => e.kind === 'recontacto_completado').length,
+    notas: events.filter((e) => e.kind === 'nota').length + activities.filter((a) => a.result || a.notes).length,
   };
 
   let lastMonth = '';
@@ -74,7 +81,7 @@ export function ContactTimeline({
   return (
     <div className="stack">
       <p className="muted small">
-        {summary.interacciones} interacciones registradas · {summary.reuniones} reuniones, visitas o prelistings · {summary.recontactos} recontactos completados
+        {summary.interacciones} interacciones registradas · {summary.reuniones} reuniones, visitas o prelistings · {summary.recontactos} recontactos completados · {summary.notas} notas
       </p>
 
       {(scheduled.length > 0 || contact.next_action || contact.next_action_date) && (
@@ -109,6 +116,8 @@ export function ContactTimeline({
           </ul>
         </section>
       )}
+
+      <NoteComposer contactId={contact.id} />
 
       <div className="chips" role="group" aria-label="Filtrar historial">
         {FILTERS.map((f) => (
@@ -150,7 +159,16 @@ export function ContactTimeline({
                         .filter(Boolean)
                         .join(' · ')}
                     </span>
-                    {it.activity.result && <span className="tl-note">{it.activity.result}</span>}
+                    {it.activity.result && (
+                      <span className="tl-note">
+                        <strong>Resultado:</strong> {it.activity.result}
+                      </span>
+                    )}
+                    {it.activity.notes && (
+                      <span className="tl-note">
+                        <strong>Notas:</strong> {it.activity.notes}
+                      </span>
+                    )}
                     {it.activity.next_action && (
                       <span className="meta">
                         Próxima acción: {it.activity.next_action}
@@ -158,6 +176,20 @@ export function ContactTimeline({
                       </span>
                     )}
                   </button>
+                </li>
+              ) : it.event.kind === 'nota' ? (
+                <li key={it.key} className="tl-item tl-event tl-note-item">
+                  <span className="tl-dot" aria-hidden="true" />
+                  <div className="tl-body">
+                    <span className="spread">
+                      <span className="tl-title">Nota</span>
+                      <DeleteNote event={it.event} />
+                    </span>
+                    <span className="meta">
+                      {it.event.created_at && `${formatShort(it.event.created_at.slice(0, 10))} · ${timeFmt.format(new Date(it.event.created_at))}`}
+                    </span>
+                    <span className="tl-note tl-note-text">{it.event.detail}</span>
+                  </div>
                 </li>
               ) : (
                 <li key={it.key} className={`tl-item tl-event ${it.event.kind === 'recontacto_completado' ? 'cat-negocio' : ''}`}>
@@ -181,5 +213,66 @@ export function ContactTimeline({
         </ol>
       )}
     </div>
+  );
+}
+
+function NoteComposer({ contactId }: { contactId: string }) {
+  const { create } = useStore();
+  const toast = useToast();
+  const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: FormEvent) {
+    e.preventDefault();
+    if (!text.trim()) return;
+    setBusy(true);
+    try {
+      await create('contact_events', { contact_id: contactId, kind: 'nota', detail: text.trim() });
+      setText('');
+      toast('Nota guardada');
+    } catch (err) {
+      toast(err instanceof Error ? `Error: ${err.message}` : 'No se pudo guardar la nota');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="note-composer" onSubmit={submit}>
+      <label htmlFor={`note-${contactId}`} className="label">
+        Agregar una nota
+      </label>
+      <textarea
+        id={`note-${contactId}`}
+        rows={2}
+        placeholder="Algo que te contó, un dato a recordar, cómo quedó la charla…"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+      <div className="form-actions">
+        <button type="submit" className="btn btn-primary" disabled={busy || !text.trim()}>
+          Guardar nota
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function DeleteNote({ event }: { event: ContactEvent }) {
+  const { remove } = useStore();
+  const toast = useToast();
+  return (
+    <button
+      type="button"
+      className="btn btn-ghost btn-icon"
+      aria-label="Borrar esta nota"
+      onClick={async () => {
+        if (!window.confirm('¿Borrar esta nota?')) return;
+        await remove('contact_events', event.id);
+        toast('Nota borrada');
+      }}
+    >
+      <Icon name="close" />
+    </button>
   );
 }
