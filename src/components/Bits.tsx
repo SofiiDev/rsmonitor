@@ -1,5 +1,5 @@
 import type { Activity, Level } from '../lib/types';
-import { ACTIVITY_LABEL, SOURCE_LABEL } from '../lib/options';
+import { ACTIVITY_LABEL, CATEGORY_LABEL, CATEGORY_OF, SOURCE_LABEL } from '../lib/options';
 
 export function LevelBadge({ level }: { level: Level | null }) {
   return (
@@ -10,10 +10,10 @@ export function LevelBadge({ level }: { level: Level | null }) {
 }
 
 export function activityKind(a: Activity): string {
-  const parts = [ACTIVITY_LABEL[a.type]];
+  const parts = [CATEGORY_LABEL[CATEGORY_OF[a.type]], ACTIVITY_LABEL[a.type]];
   if (a.operation) parts.push(a.operation);
   if (a.source) parts.push(SOURCE_LABEL[a.source] ?? a.source);
-  return parts.join(' · ');
+  return [...new Set(parts)].join(' · ');
 }
 
 export function Stat({ label, value, goal, suffix }: { label: string; value: number; goal?: number; suffix?: string }) {

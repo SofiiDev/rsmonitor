@@ -1,4 +1,4 @@
-import type { ActivityType, Goal, Level, Operation } from './types';
+import type { ActivityType, Category, Goal, Level, Operation } from './types';
 
 // Listas tomadas de la hoja "Listas y criterios" de la Base de Relaciones.
 
@@ -22,21 +22,33 @@ export const PROBABILITY = ['Alta', 'Media', 'Baja'];
 export const HISTORY_CHANNELS = ['Llamada', 'WhatsApp', 'Reunión', 'Visita', 'Redes', 'Evento'];
 export const CONVERSATION_STATUS = ['Abierta', 'En seguimiento', 'Cerrada', 'Sin respuesta'];
 
-export const ACTIVITY_TYPES: { value: ActivityType; label: string; hint: string }[] = [
-  { value: 'contacto', label: 'Contacto (verde)', hint: 'Conversación con alguien de tu base' },
-  { value: 'prelisting', label: 'Prelisting', hint: 'Reunión previa a una captación' },
-  { value: 'acm', label: 'ACM / Tasación', hint: 'Análisis comparativo de mercado' },
-  { value: 'captacion', label: 'Captación', hint: 'Propiedad o cliente captado' },
-  { value: 'visita', label: 'Visita', hint: 'Visita a una propiedad' },
-  { value: 'cierre', label: 'Cierre', hint: 'Operación cerrada (cargá la comisión)' },
-  { value: 'farming', label: 'Farming', hint: 'Volantes, tarjetas, encargados de edificio' },
-  { value: 'reunion', label: 'Reunión', hint: 'Equipo, oficina, networking' },
-  { value: 'otra', label: 'Otra', hint: 'Cualquier otra actividad del negocio' },
+// Colores de agenda: verde = negocio, amarillo = administrativa, rojo = personal.
+export const CATEGORIES: { value: Category; label: string; hint: string }[] = [
+  { value: 'negocio', label: 'Negocio', hint: 'Clientes, contactos, prelistings, ACM, visitas' },
+  { value: 'administrativa', label: 'Administrativa', hint: 'Cargar propiedades, reuniones de equipo, coach' },
+  { value: 'personal', label: 'Personal', hint: 'Turnos médicos, vacaciones, trámites personales' },
 ];
 
-export const ACTIVITY_LABEL: Record<ActivityType, string> = Object.fromEntries(
-  ACTIVITY_TYPES.map((t) => [t.value, t.label.replace(' (verde)', '')]),
-) as Record<ActivityType, string>;
+export const CATEGORY_LABEL: Record<Category, string> = { negocio: 'Negocio', administrativa: 'Administrativa', personal: 'Personal' };
+
+export const ACTIVITY_TYPES: { value: ActivityType; label: string; hint: string; category: Category }[] = [
+  { value: 'contacto', label: 'Contacto', hint: 'Llamada o WhatsApp con alguien de tu base', category: 'negocio' },
+  { value: 'reunion_cliente', label: 'Reunión con cliente', hint: 'Café, reunión o encuentro con un cliente', category: 'negocio' },
+  { value: 'prelisting', label: 'Prelisting', hint: 'Reunión previa a una captación', category: 'negocio' },
+  { value: 'acm', label: 'ACM / Tasación', hint: 'Análisis comparativo de mercado', category: 'negocio' },
+  { value: 'captacion', label: 'Captación', hint: 'Propiedad o cliente captado', category: 'negocio' },
+  { value: 'visita', label: 'Visita', hint: 'Visita a una propiedad', category: 'negocio' },
+  { value: 'cierre', label: 'Cierre', hint: 'Operación cerrada (cargá la comisión)', category: 'negocio' },
+  { value: 'farming', label: 'Farming', hint: 'Volantes, tarjetas, encargados de edificio', category: 'negocio' },
+  { value: 'admin', label: 'Tarea administrativa', hint: 'Cargar propiedades, papeles, publicaciones', category: 'administrativa' },
+  { value: 'reunion', label: 'Reunión de equipo / coach', hint: 'Oficina, equipo, coaching, capacitación', category: 'administrativa' },
+  { value: 'otra', label: 'Otra', hint: 'Otra tarea administrativa', category: 'administrativa' },
+  { value: 'personal', label: 'Personal', hint: 'Turno médico, vacaciones, trámite personal', category: 'personal' },
+];
+
+export const ACTIVITY_LABEL = Object.fromEntries(ACTIVITY_TYPES.map((t) => [t.value, t.label])) as Record<ActivityType, string>;
+
+export const CATEGORY_OF = Object.fromEntries(ACTIVITY_TYPES.map((t) => [t.value, t.category])) as Record<ActivityType, Category>;
 
 /** Tipos que requieren indicar operación (venta / compra / alquiler). */
 export const TYPES_WITH_OPERATION: ActivityType[] = ['captacion', 'visita', 'cierre'];

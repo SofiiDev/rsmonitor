@@ -75,7 +75,10 @@ create index if not exists contacts_user_idx on public.contacts (user_id);
 create index if not exists contacts_next_action_idx on public.contacts (user_id, next_action_date);
 
 -- ───────────────────────── Actividades (seguimiento + historial de contactos) ─────────────────────────
--- Tipos: contacto (verde), prelisting, acm, captacion, visita, cierre, farming, reunion, otra
+-- Tipos por categoría (color en la agenda):
+--   negocio (verde):        contacto, reunion_cliente, prelisting, acm, captacion, visita, cierre, farming
+--   administrativa (amarillo): admin, reunion (equipo / coach), otra
+--   personal (rojo):        personal
 create table if not exists public.activities (
   id               uuid primary key default gen_random_uuid(),
   user_id          uuid not null default auth.uid() references auth.users (id) on delete cascade,
@@ -83,7 +86,9 @@ create table if not exists public.activities (
   updated_at       timestamptz not null default now(),
 
   date             date not null default current_date,
-  type             text not null check (type in ('contacto','prelisting','acm','captacion','visita','cierre','farming','reunion','otra')),
+  type             text not null constraint activities_type_check check (type in (
+                     'contacto','reunion_cliente','prelisting','acm','captacion','visita','cierre','farming',
+                     'admin','reunion','otra','personal')),
   source           text,          -- origen del prelisting: circulo_a, ex_clientes, referidor, comprador, redes, guardia, farming, dueno_vende
   operation        text check (operation in ('venta','compra','alquiler')),
   contact_id       uuid references public.contacts (id) on delete set null,

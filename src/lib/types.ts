@@ -1,15 +1,23 @@
 export type Level = 'A' | 'B' | 'C' | 'D';
 
 export type ActivityType =
+  // negocio (verde)
   | 'contacto'
+  | 'reunion_cliente'
   | 'prelisting'
   | 'acm'
   | 'captacion'
   | 'visita'
   | 'cierre'
   | 'farming'
+  // administrativa (amarillo)
   | 'reunion'
-  | 'otra';
+  | 'admin'
+  | 'otra'
+  // personal (rojo)
+  | 'personal';
+
+export type Category = 'negocio' | 'administrativa' | 'personal';
 
 export type Operation = 'venta' | 'compra' | 'alquiler';
 

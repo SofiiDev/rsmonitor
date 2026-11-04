@@ -1,3 +1,4 @@
+import { CATEGORY_OF } from '../lib/options';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../lib/store';
@@ -112,7 +113,7 @@ export function Today() {
                 {todays.map((a) => (
                   <li key={a.id}>
                     <button type="button" className="list-item" onClick={() => openEditor(a)}>
-                      <span className={`type-dot type-${a.type}`} aria-hidden="true" />
+                      <span className={`cat-dot cat-${CATEGORY_OF[a.type]}`} aria-hidden="true" />
                       <span className="grow">
                         <span className="title">{a.title}</span>
                         <span className="meta" style={{ display: 'block' }}>

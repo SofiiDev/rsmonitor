@@ -1,15 +1,15 @@
 import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { addDays, formatShort, formatWeekday, isoWeek, startOfWeek, today } from '../lib/dates';
-import { countByType, inRange } from '../lib/metrics';
-import { ACTIVITY_LABEL, ACTIVITY_TYPES } from '../lib/options';
+import { countByCategory, countByType, inRange } from '../lib/metrics';
+import { ACTIVITY_LABEL, ACTIVITY_TYPES, CATEGORIES, CATEGORY_OF } from '../lib/options';
 import type { ActivityType } from '../lib/types';
 import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
 import { useActivityEditor } from '../components/ActivityEditor';
 import { activityKind } from '../components/Bits';
 
-const SUMMARY: ActivityType[] = ['contacto', 'prelisting', 'acm', 'captacion', 'visita', 'cierre', 'farming'];
+const SUMMARY: ActivityType[] = ['contacto', 'reunion_cliente', 'prelisting', 'acm', 'captacion', 'visita', 'cierre', 'farming'];
 
 export function Activities() {
   const { activities, contacts } = useStore();
@@ -17,7 +17,7 @@ export function Activities() {
   const [params, setParams] = useSearchParams();
   const t = today();
   const monday = startOfWeek(params.get('semana') ?? t);
-  const filter = (params.get('tipo') ?? '') as ActivityType | '';
+  const filter = params.get('tipo') ?? ''; // tipo de actividad o 'cat:<categoría>'
   const sunday = addDays(monday, 6);
   const isCurrent = monday === startOfWeek(t);
 
@@ -36,7 +36,12 @@ export function Activities() {
 
   const weekList = inRange(activities, monday, sunday);
   const counts = countByType(weekList);
-  const shown = filter ? weekList.filter((a) => a.type === filter) : weekList;
+  const byCategory = countByCategory(weekList);
+  const shown = !filter
+    ? weekList
+    : filter.startsWith('cat:')
+      ? weekList.filter((a) => CATEGORY_OF[a.type] === filter.slice(4))
+      : weekList.filter((a) => a.type === filter);
   const byId = new Map(contacts.map((c) => [c.id, c.full_name]));
   const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
 
@@ -60,14 +65,19 @@ export function Activities() {
         }
       />
 
-      <section aria-label="Resumen de la semana" className="card" style={{ marginBottom: 16 }}>
-        <ul className="row" style={{ listStyle: 'none', margin: 0, padding: 0, gap: 16 }}>
+      <section aria-label="Resumen de la semana" className="stack-sm" style={{ marginBottom: 16 }}>
+        <ul className="cat-summary">
+          {CATEGORIES.map((c) => (
+            <li key={c.value} className={`cat-tile cat-${c.value}`}>
+              <span className="stat-label">{c.label}</span>
+              <span className="stat-value">{byCategory[c.value]}</span>
+            </li>
+          ))}
+        </ul>
+        <ul className="row muted" style={{ listStyle: 'none', margin: 0, padding: 0, columnGap: 16 }}>
           {SUMMARY.map((type) => (
-            <li key={type} className="row" style={{ gap: 6 }}>
-              <span className={`type-dot type-${type}`} aria-hidden="true" />
-              <span className="small">
-                {ACTIVITY_LABEL[type]}: <strong>{counts[type]}</strong>
-              </span>
+            <li key={type} className="small">
+              {ACTIVITY_LABEL[type]}: <strong>{counts[type]}</strong>
             </li>
           ))}
         </ul>
@@ -79,11 +89,16 @@ export function Activities() {
             Filtrar por tipo
           </label>
           <select id="filter-type" value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="">Todos los tipos</option>
-            {ACTIVITY_TYPES.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
+            <option value="">Todas las actividades</option>
+            {CATEGORIES.map((c) => (
+              <optgroup key={c.value} label={c.label}>
+                <option value={`cat:${c.value}`}>Todas: {c.label.toLowerCase()}</option>
+                {ACTIVITY_TYPES.filter((o) => o.category === c.value).map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
         </div>
@@ -106,8 +121,8 @@ export function Activities() {
                 <ul>
                   {items.map((a) => (
                     <li key={a.id}>
-                      <button type="button" className="activity-chip" onClick={() => openEditor(a)}>
-                        <span className={`type-dot type-${a.type}`} aria-hidden="true" />
+                      <button type="button" className={`activity-chip cat-${CATEGORY_OF[a.type]}`} onClick={() => openEditor(a)}>
+                        <span className={`cat-dot cat-${CATEGORY_OF[a.type]}`} aria-hidden="true" />
                         <span>
                           <span className="kind">{activityKind(a)}</span>
                           <span className="what">

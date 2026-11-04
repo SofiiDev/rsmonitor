@@ -1,4 +1,5 @@
-import type { Activity, ActivityType, Contact, Goal } from './types';
+import type { Activity, ActivityType, Category, Contact, Goal } from './types';
+import { CATEGORY_OF } from './options';
 import { addDays, diffDays, fromISO, nextBirthday, startOfWeek, today } from './dates';
 
 // Cálculos replicados de la planilla "OBJETIVOS Y TRACKEO".
@@ -36,7 +37,10 @@ export function planFor(goal: Goal): GoalPlan {
 }
 
 export function countByType(list: Activity[]): Record<ActivityType, number> {
-  const out = { contacto: 0, prelisting: 0, acm: 0, captacion: 0, visita: 0, cierre: 0, farming: 0, reunion: 0, otra: 0 };
+  const out: Record<ActivityType, number> = {
+    contacto: 0, reunion_cliente: 0, prelisting: 0, acm: 0, captacion: 0, visita: 0, cierre: 0, farming: 0,
+    reunion: 0, admin: 0, otra: 0, personal: 0,
+  };
   for (const a of list) out[a.type]++;
   return out;
 }
@@ -103,4 +107,10 @@ export function formatMoney(n: number): string {
 
 export function formatNumber(n: number, digits = 1): string {
   return n.toLocaleString('es-AR', { maximumFractionDigits: digits });
+}
+
+export function countByCategory(list: Activity[]): Record<Category, number> {
+  const out: Record<Category, number> = { negocio: 0, administrativa: 0, personal: 0 };
+  for (const a of list) out[CATEGORY_OF[a.type]]++;
+  return out;
 }

@@ -4,6 +4,7 @@ import type { Activity, ActivityType, Operation } from '../lib/types';
 import { emptyActivity } from '../lib/empty';
 import {
   ACTIVITY_TYPES,
+  CATEGORIES,
   CONVERSATION_STATUS,
   HISTORY_CHANNELS,
   OPERATIONS,
@@ -108,13 +109,27 @@ function ActivityForm({ initial, onDone }: { initial: Draft; onDone: () => void 
         </p>
       )}
 
-      <ChipGroup<ActivityType>
-        legend="Tipo de actividad"
-        name="type"
-        value={a.type}
-        onChange={(v) => set('type', v)}
-        options={ACTIVITY_TYPES.map((t) => ({ value: t.value, label: t.label }))}
-      />
+      <fieldset>
+        <legend>Tipo de actividad</legend>
+        <div className="stack-sm">
+          {CATEGORIES.map((cat) => (
+            <div key={cat.value} className={`type-group cat-${cat.value}`} role="group" aria-labelledby={`cat-${cat.value}`}>
+              <span id={`cat-${cat.value}`} className="type-group-label">
+                <span className="cat-dot" aria-hidden="true" />
+                {cat.label}
+              </span>
+              <div className="chips">
+                {ACTIVITY_TYPES.filter((t) => t.category === cat.value).map((t) => (
+                  <label key={t.value} className="chip">
+                    <input type="radio" name="type" value={t.value} checked={a.type === t.value} onChange={() => set('type', t.value as ActivityType)} />
+                    <span>{t.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </fieldset>
 
       <div className="form-grid">
         <TextField
@@ -156,7 +171,7 @@ function ActivityForm({ initial, onDone }: { initial: Draft; onDone: () => void 
         />
       )}
 
-      {(a.type === 'contacto' || a.contact_id) && (
+      {(a.type === 'contacto' || a.type === 'reunion_cliente' || a.contact_id) && (
         <div className="form-grid">
           <SelectField label="Canal" value={a.channel} onChange={(v) => set('channel', str(v))} options={HISTORY_CHANNELS} />
           <SelectField label="Estado de la conversación" value={a.conversation_status} onChange={(v) => set('conversation_status', str(v))} options={CONVERSATION_STATUS} />

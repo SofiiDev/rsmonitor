@@ -997,3 +997,82 @@ td input {
 @media (min-width: 720px) {
   .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+/* ───────────────────────── Categorías de actividad ─────────────────────────
+   verde = negocio · amarillo = administrativa · rojo = personal.
+   El color nunca es la única señal: la categoría también figura en el texto. */
+:root {
+  --cat-negocio: #2e7d32;
+  --cat-negocio-soft: #e6f4e7;
+  --cat-administrativa: #e0a800;
+  --cat-administrativa-soft: #fdf5d8;
+  --cat-personal: #c62828;
+  --cat-personal-soft: #fbe7e7;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --cat-negocio: #66bb6a;
+    --cat-negocio-soft: #1c3020;
+    --cat-administrativa: #ffd54f;
+    --cat-administrativa-soft: #352d14;
+    --cat-personal: #ef6b6b;
+    --cat-personal-soft: #3a1c1c;
+  }
+}
+.cat-negocio { --cat: var(--cat-negocio); --cat-soft: var(--cat-negocio-soft); }
+.cat-administrativa { --cat: var(--cat-administrativa); --cat-soft: var(--cat-administrativa-soft); }
+.cat-personal { --cat: var(--cat-personal); --cat-soft: var(--cat-personal-soft); }
+
+.cat-dot {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--cat, var(--text-muted));
+}
+.activity-chip .cat-dot {
+  margin-top: 4px;
+}
+.activity-chip[class*='cat-'] {
+  background: var(--cat-soft);
+  border-left: 4px solid var(--cat);
+}
+
+.cat-summary {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.cat-tile {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--cat);
+  background: var(--surface);
+}
+
+.type-group {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border-left: 4px solid var(--cat);
+  background: var(--cat-soft);
+}
+.type-group-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+.type-group .chip input:checked + span {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--surface);
+}
