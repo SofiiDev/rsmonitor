@@ -1,4 +1,4 @@
-import type { Activity, Contact, Expense, Goal, TableMap, TableName } from './types';
+import type { Activity, Contact, ContactEvent, Expense, Goal, TableMap, TableName } from './types';
 import { addDays, startOfWeek, today } from './dates';
 import { defaultGoal } from './options';
 import { emptyContact } from './empty';
@@ -78,5 +78,12 @@ export function demoSeed(): { [K in TableName]: TableMap[K][] } {
     { id: 'e3', year, name: 'Regalos a clientes', monthly_amount: 120 },
   ];
 
-  return { contacts, activities, goals, expenses };
+  const contact_events: ContactEvent[] = [
+    { id: 'ev1', contact_id: 'c1', kind: 'creado', detail: null, created_at: `${addDays(t, -60)}T12:00:00` },
+    { id: 'ev2', contact_id: 'c1', kind: 'nivel', detail: 'B → A', created_at: `${addDays(t, -30)}T12:00:00` },
+    { id: 'ev3', contact_id: 'c1', kind: 'recontacto_completado', detail: 'Enviar ACM', created_at: `${addDays(t, -5)}T18:00:00` },
+    { id: 'ev4', contact_id: 'c1', kind: 'recontacto_programado', detail: 'Llamar para seguimiento de tasación', created_at: `${addDays(t, -5)}T18:01:00` },
+  ];
+
+  return { contacts, activities, goals, expenses, contact_events };
 }

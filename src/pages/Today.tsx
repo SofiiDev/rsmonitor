@@ -329,7 +329,7 @@ function ContactTask({ c, today }: { c: Contact; today: string }) {
   const overdue = (c.next_action_date as string) < today;
 
   async function postpone() {
-    await save('contacts', c.id, { next_action_date: addDays(today, 1) });
+    await save('contacts', c.id, { next_action_date: addDays(today, 1) }, { reason: 'pospuesto' });
     toast(`Pasado a mañana: ${c.full_name}`);
   }
 
@@ -370,9 +370,10 @@ function ContactTask({ c, today }: { c: Contact; today: string }) {
 }
 
 function QuickAdd({ date, onMore }: { date: string; onMore: (title: string) => void }) {
-  const { create } = useStore();
+  const { create, contacts } = useStore();
   const toast = useToast();
   const [title, setTitle] = useState('');
+  const [contactId, setContactId] = useState('');
   const [time, setTime] = useState('');
   const [type, setType] = useState<ActivityType>('contacto');
 
@@ -380,8 +381,9 @@ function QuickAdd({ date, onMore }: { date: string; onMore: (title: string) => v
     e.preventDefault();
     if (!title.trim()) return;
     try {
-      await create('activities', { date, time: time || null, done: false, type, title: title.trim() });
+      await create('activities', { date, time: time || null, done: false, type, title: title.trim(), contact_id: contactId || null });
       setTitle('');
+      setContactId('');
       setTime('');
       toast('Agregada a hoy');
     } catch (err) {
@@ -410,6 +412,19 @@ function QuickAdd({ date, onMore }: { date: string; onMore: (title: string) => v
                 </option>
               ))}
             </optgroup>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="qa-contact" className="visually-hidden">
+          Contacto (opcional)
+        </label>
+        <select id="qa-contact" value={contactId} onChange={(e) => setContactId(e.target.value)}>
+          <option value="">Sin contacto</option>
+          {contacts.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.full_name}
+            </option>
           ))}
         </select>
       </div>

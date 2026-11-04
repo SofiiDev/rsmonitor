@@ -117,6 +117,28 @@ export interface Activity {
   notes: string | null;
 }
 
+export type ContactEventKind =
+  | 'creado'
+  | 'recontacto_programado'
+  | 'recontacto_reprogramado'
+  | 'recontacto_completado'
+  | 'recontacto_cancelado'
+  | 'nivel'
+  | 'oportunidad'
+  | 'estado_relacion'
+  | 'no_contactar'
+  | 'actividad_eliminada';
+
+/** Registro automático de lo que pasa con un contacto (complementa sus actividades). */
+export interface ContactEvent {
+  id: string;
+  user_id?: string;
+  created_at?: string;
+  contact_id: string;
+  kind: ContactEventKind;
+  detail: string | null;
+}
+
 export interface Goal {
   id: string;
   user_id?: string;
@@ -145,6 +167,7 @@ export interface TableMap {
   activities: Activity;
   goals: Goal;
   expenses: Expense;
+  contact_events: ContactEvent;
 }
 
 export type TableName = keyof TableMap;

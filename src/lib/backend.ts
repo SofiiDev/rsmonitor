@@ -24,6 +24,7 @@ const ORDER: Record<TableName, { column: string; ascending: boolean }> = {
   activities: { column: 'date', ascending: false },
   goals: { column: 'year', ascending: true },
   expenses: { column: 'created_at', ascending: true },
+  contact_events: { column: 'created_at', ascending: false },
 };
 
 const PAGE = 1000;
@@ -73,7 +74,7 @@ type DemoDB = { [K in TableName]: TableMap[K][] };
 function readDemo(): DemoDB {
   try {
     const raw = localStorage.getItem(DEMO_KEY);
-    if (raw) return JSON.parse(raw) as DemoDB;
+    if (raw) return { contact_events: [], ...JSON.parse(raw) } as DemoDB;
   } catch {
     /* almacenamiento no disponible: usamos datos de ejemplo en memoria */
   }
@@ -125,6 +126,7 @@ export function demoBackend(): Backend {
       const t = db()[table] as { id: string }[];
       (db() as Record<string, unknown>)[table] = t.filter((r) => r.id !== id);
       if (table === 'contacts') {
+        db().contact_events = db().contact_events.filter((e) => e.contact_id !== id);
         db().activities.forEach((a) => {
           if (a.contact_id === id) a.contact_id = null;
         });

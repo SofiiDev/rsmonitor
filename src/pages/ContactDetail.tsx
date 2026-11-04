@@ -1,4 +1,3 @@
-import { CATEGORY_OF } from '../lib/options';
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../lib/store';
@@ -7,10 +6,11 @@ import { LEVELS } from '../lib/options';
 import { formatShort, relativeDay, today } from '../lib/dates';
 import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
-import { LevelBadge, activityKind, waLink } from '../components/Bits';
+import { LevelBadge, waLink } from '../components/Bits';
 import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
 import { useActivityEditor } from '../components/ActivityEditor';
+import { ContactTimeline } from '../components/ContactTimeline';
 import { useToast } from '../components/Toast';
 
 type Tab = 'historial' | 'relacion' | 'personal' | 'oportunidad';
@@ -41,7 +41,7 @@ function Facts({ items }: { items: [string, ReactNode][] }) {
 
 export function ContactDetail() {
   const { id } = useParams();
-  const { contacts, activities, save, remove, loading } = useStore();
+  const { contacts, activities, contact_events, save, remove, loading } = useStore();
   const openEditor = useActivityEditor();
   const toast = useToast();
   const navigate = useNavigate();
@@ -178,34 +178,9 @@ export function ContactDetail() {
           </div>
 
           <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} tabIndex={0}>
-            {tab === 'historial' &&
-              (history.length === 0 ? (
-                <p className="empty">Sin interacciones registradas.</p>
-              ) : (
-                <ul className="list">
-                  {history.map((a) => (
-                    <li key={a.id}>
-                      <button type="button" className="list-item" onClick={() => openEditor(a)}>
-                        <span className={`cat-dot cat-${CATEGORY_OF[a.type]}`} aria-hidden="true" />
-                        <span className="grow">
-                          <span className="title">{a.title}</span>
-                          <span className="meta" style={{ display: 'block' }}>
-                            {formatShort(a.date)} · {activityKind(a)}
-                            {a.channel && ` · ${a.channel}`}
-                            {a.conversation_status && ` · ${a.conversation_status}`}
-                            {a.done === false && ' · pendiente'}
-                          </span>
-                          {a.result && (
-                            <span className="meta" style={{ display: 'block' }}>
-                              {a.result}
-                            </span>
-                          )}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              ))}
+            {tab === 'historial' && (
+              <ContactTimeline contact={c} activities={history} events={contact_events.filter((e) => e.contact_id === c.id)} onOpen={openEditor} />
+            )}
 
             {tab === 'relacion' && (
               <Facts

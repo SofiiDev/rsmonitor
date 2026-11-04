@@ -111,6 +111,19 @@ create index if not exists activities_user_date_idx on public.activities (user_i
 create index if not exists activities_contact_idx on public.activities (contact_id);
 create index if not exists activities_pending_idx on public.activities (user_id, date) where not done;
 
+-- ───────────────────────── Historial automático de cada contacto ─────────────────────────
+-- Recontactos programados / reprogramados / completados / cancelados, cambios de nivel, etc.
+create table if not exists public.contact_events (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  contact_id  uuid not null references public.contacts (id) on delete cascade,
+  kind        text not null,
+  detail      text
+);
+
+create index if not exists contact_events_contact_idx on public.contact_events (contact_id, created_at desc);
+
 -- ───────────────────────── Objetivos anuales ─────────────────────────
 create table if not exists public.goals (
   id                     uuid primary key default gen_random_uuid(),
@@ -164,11 +177,12 @@ alter table public.contacts   enable row level security;
 alter table public.activities enable row level security;
 alter table public.goals      enable row level security;
 alter table public.expenses   enable row level security;
+alter table public.contact_events enable row level security;
 
 do $$
 declare t text;
 begin
-  foreach t in array array['contacts','activities','goals','expenses'] loop
+  foreach t in array array['contacts','activities','goals','expenses','contact_events'] loop
     execute format('drop policy if exists "own rows" on public.%I', t);
     execute format(
       'create policy "own rows" on public.%I for all to authenticated

@@ -91,9 +91,14 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
       else await create('activities', row);
       // Mantiene la "próxima acción" de la ficha del contacto al día.
       if (contact && updateContact && a.next_action) {
-        await save('contacts', contact.id, { next_action: a.next_action, next_action_date: a.next_action_date });
+        await save(
+          'contacts',
+          contact.id,
+          { next_action: a.next_action, next_action_date: a.next_action_date },
+          { reason: options.completesContactAction === contact.id && a.done ? 'completado' : undefined },
+        );
       } else if (options.completesContactAction && a.done) {
-        await save('contacts', options.completesContactAction, { next_action: null, next_action_date: null });
+        await save('contacts', options.completesContactAction, { next_action: null, next_action_date: null }, { reason: 'completado' });
       }
       toast(a.id ? 'Actividad actualizada' : a.done ? 'Actividad registrada' : 'Actividad agendada');
       onDone();

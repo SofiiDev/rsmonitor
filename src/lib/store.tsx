@@ -1,16 +1,18 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { demoBackend, supabase, supabaseBackend, type Backend } from './backend';
-import type { Activity, Contact, Expense, Goal, TableMap, TableName } from './types';
+import type { Activity, Contact, ContactEvent, Expense, Goal, TableMap, TableName } from './types';
+import { contactChanges, type ChangeReason } from './history';
 
 type Data = {
   contacts: Contact[];
   activities: Activity[];
   goals: Goal[];
   expenses: Expense[];
+  contact_events: ContactEvent[];
 };
 
-const EMPTY: Data = { contacts: [], activities: [], goals: [], expenses: [] };
+const EMPTY: Data = { contacts: [], activities: [], goals: [], expenses: [], contact_events: [] };
 
 interface StoreValue extends Data {
   mode: 'loading' | 'signed-out' | 'supabase' | 'demo';
@@ -21,7 +23,7 @@ interface StoreValue extends Data {
   signOut: () => Promise<void>;
   reload: () => Promise<void>;
   create: <T extends TableName>(table: T, row: Partial<TableMap[T]>) => Promise<TableMap[T]>;
-  save: <T extends TableName>(table: T, id: string, patch: Partial<TableMap[T]>) => Promise<TableMap[T]>;
+  save: <T extends TableName>(table: T, id: string, patch: Partial<TableMap[T]>, meta?: { reason?: ChangeReason }) => Promise<TableMap[T]>;
   remove: (table: TableName, id: string) => Promise<void>;
 }
 
@@ -45,6 +47,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   });
   const [data, setData] = useState<Data>(EMPTY);
+  const dataRef = useRef(data);
+  dataRef.current = data;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,14 +76,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const [contacts, activities, goals, expenses] = await Promise.all([
+      const [contacts, activities, goals, expenses, contact_events] = await Promise.all([
         backend.list('contacts'),
         backend.list('activities'),
         backend.list('goals'),
         backend.list('expenses'),
+        // Si todavía no se corrió la migración del historial, la app sigue funcionando sin él.
+        backend.list('contact_events').catch(() => [] as ContactEvent[]),
       ]);
       contacts.sort((a, b) => a.full_name.localeCompare(b.full_name, 'es'));
-      setData({ contacts, activities, goals, expenses });
+      setData({ contacts, activities, goals, expenses, contact_events });
     } catch (e) {
       setError(readableError(e));
     } finally {
@@ -96,6 +102,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return backend;
   }, [backend]);
 
+  /** Guarda eventos del historial sin bloquear la acción principal si fallan. */
+  const logEvents = useCallback(
+    async (events: Omit<ContactEvent, 'id'>[]) => {
+      if (!backend || events.length === 0) return;
+      for (const e of events) {
+        try {
+          const saved = await backend.insert('contact_events', e);
+          setData((d) => ({ ...d, contact_events: [saved, ...d.contact_events] }));
+        } catch (err) {
+          console.warn('No se pudo registrar en el historial', err);
+        }
+      }
+    },
+    [backend],
+  );
+
   const create = useCallback(
     async <T extends TableName>(table: T, row: Partial<TableMap[T]>) => {
       const saved = await requireBackend().insert(table, row);
@@ -104,35 +126,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (table === 'contacts') (rows as Contact[]).sort((a, b) => a.full_name.localeCompare(b.full_name, 'es'));
         return { ...d, [table]: rows };
       });
+      if (table === 'contacts') await logEvents(contactChanges(undefined, saved as Contact));
       return saved;
     },
-    [requireBackend],
+    [requireBackend, logEvents],
   );
 
   const save = useCallback(
-    async <T extends TableName>(table: T, id: string, patch: Partial<TableMap[T]>) => {
+    async <T extends TableName>(table: T, id: string, patch: Partial<TableMap[T]>, meta?: { reason?: ChangeReason }) => {
+      const prev = table === 'contacts' ? dataRef.current.contacts.find((c) => c.id === id) : undefined;
       const saved = await requireBackend().update(table, id, patch);
       setData((d) => ({
         ...d,
         [table]: (d[table] as { id: string }[]).map((r) => (r.id === id ? saved : r)),
       }));
+      if (table === 'contacts') await logEvents(contactChanges(prev, saved as Contact, meta?.reason));
       return saved;
     },
-    [requireBackend],
+    [requireBackend, logEvents],
   );
 
   const remove = useCallback(
     async (table: TableName, id: string) => {
+      const act = table === 'activities' ? dataRef.current.activities.find((a) => a.id === id) : undefined;
       await requireBackend().remove(table, id);
+      if (act?.contact_id) await logEvents([{ contact_id: act.contact_id, kind: 'actividad_eliminada', detail: `${act.title} (${act.date})` }]);
       setData((d) => {
         const next = { ...d, [table]: (d[table] as { id: string }[]).filter((r) => r.id !== id) } as Data;
         if (table === 'contacts') {
           next.activities = next.activities.map((a) => (a.contact_id === id ? { ...a, contact_id: null } : a));
+          next.contact_events = next.contact_events.filter((e) => e.contact_id !== id);
         }
         return next;
       });
     },
-    [requireBackend],
+    [requireBackend, logEvents],
   );
 
   const startDemo = useCallback(() => {
