@@ -90,6 +90,8 @@ export interface Activity {
   updated_at?: string;
 
   date: string;
+  time: string | null;        // 'HH:MM' (Supabase puede devolver 'HH:MM:SS')
+  done: boolean;              // false = pendiente / agendada
   type: ActivityType;
   source: string | null;
   operation: Operation | null;

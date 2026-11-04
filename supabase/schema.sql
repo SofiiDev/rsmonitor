@@ -86,6 +86,8 @@ create table if not exists public.activities (
   updated_at       timestamptz not null default now(),
 
   date             date not null default current_date,
+  time             time,          -- hora opcional (reuniones, visitas)
+  done             boolean not null default true, -- false = pendiente / agendada
   type             text not null constraint activities_type_check check (type in (
                      'contacto','reunion_cliente','prelisting','acm','captacion','visita','cierre','farming',
                      'admin','reunion','otra','personal')),
@@ -104,6 +106,7 @@ create table if not exists public.activities (
 
 create index if not exists activities_user_date_idx on public.activities (user_id, date);
 create index if not exists activities_contact_idx on public.activities (contact_id);
+create index if not exists activities_pending_idx on public.activities (user_id, date) where not done;
 
 -- ───────────────────────── Objetivos anuales ─────────────────────────
 create table if not exists public.goals (

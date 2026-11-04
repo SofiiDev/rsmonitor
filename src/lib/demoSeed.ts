@@ -39,7 +39,7 @@ export function demoSeed(): { [K in TableName]: TableMap[K][] } {
   ];
 
   const a = (id: string, data: Partial<Activity>): Activity => ({
-    id, date: t, type: 'otra', source: null, operation: null, contact_id: null, title: '',
+    id, date: t, time: null, done: true, type: 'otra', source: null, operation: null, contact_id: null, title: '',
     channel: null, result: null, conversation_status: null, amount: null,
     next_action: null, next_action_date: null, notes: null, ...data,
   });
@@ -50,6 +50,11 @@ export function demoSeed(): { [K in TableName]: TableMap[K][] } {
     a('a3', { date: addDays(monday, 1), type: 'farming', title: 'Volantes en Parque Centenario (300)' }),
     a('a10', { date: addDays(monday, 1), type: 'admin', title: 'Cargar fotos y ficha de 2 amb. Palermo' }),
     a('a11', { date: addDays(monday, 3), type: 'personal', title: 'Turno médico' }),
+    a('p1', { date: t, time: '10:00', done: false, type: 'reunion_cliente', contact_id: 'c3', title: 'Café con Carla en Palermo' }),
+    a('p2', { date: t, time: '15:30', done: false, type: 'visita', operation: 'venta', title: 'Visita depto Caballito con Martín', contact_id: 'c2' }),
+    a('p3', { date: t, done: false, type: 'admin', title: 'Subir fotos nuevas a los portales' }),
+    a('p4', { date: addDays(t, -1), done: false, type: 'personal', title: 'Pagar monotributo' }),
+    a('p5', { date: addDays(t, 2), time: '11:00', done: false, type: 'prelisting', source: 'referidor', title: 'Prelisting casa Villa Urquiza' }),
     a('a12', { date: addDays(monday, 3), type: 'reunion_cliente', contact_id: 'c2', title: 'Café para ver su búsqueda' }),
     a('a13', { date: addDays(monday, 4), type: 'reunion', title: 'Reunión con coach' }),
     a('a4', { date: addDays(monday, 2), type: 'prelisting', source: 'circulo_a', contact_id: 'c1', title: 'Prelisting depto Villa Crespo' }),

@@ -18,7 +18,7 @@ export function emptyContact(): Omit<Contact, 'id'> {
 
 export function emptyActivity(partial: Partial<Activity> = {}): Omit<Activity, 'id'> {
   return {
-    date: today(), type: 'contacto', source: null, operation: null, contact_id: null, title: '',
+    date: today(), time: null, done: true, type: 'contacto', source: null, operation: null, contact_id: null, title: '',
     channel: null, result: null, conversation_status: null, amount: null,
     next_action: null, next_action_date: null, notes: null, ...partial,
   };

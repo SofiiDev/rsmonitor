@@ -3,7 +3,7 @@ import { useStore } from '../lib/store';
 import type { Goal } from '../lib/types';
 import { MONTHS, PRELISTING_SOURCES, defaultGoal } from '../lib/options';
 import { addDays, formatShort, startOfWeek, today } from '../lib/dates';
-import { countByType, formatMoney, formatNumber, monthlyRevenue, planFor, ratio } from '../lib/metrics';
+import { countByType, formatMoney, formatNumber, isDone, monthlyRevenue, planFor, ratio } from '../lib/metrics';
 import { PageHeader } from '../components/Layout';
 import { Stat } from '../components/Bits';
 import { DecimalField, DecimalInput, TextField, parseDecimal } from '../components/Fields';
@@ -18,7 +18,7 @@ export function Goals() {
   const goal: Goal = stored ?? { id: '', ...defaultGoal(year) };
   const plan = planFor(goal);
 
-  const yearActs = useMemo(() => activities.filter((a) => a.date.startsWith(String(year))), [activities, year]);
+  const yearActs = useMemo(() => activities.filter((a) => isDone(a) && a.date.startsWith(String(year))), [activities, year]);
   const revenue = monthlyRevenue(activities, year);
   const totalReal = revenue.reduce((s, n) => s + n, 0);
   const totals = countByType(yearActs);
@@ -309,7 +309,7 @@ function WeeklyTable({ year, goal }: { year: number; goal: Goal }) {
 
   const rows = weeks.map((mon) => {
     const sun = addDays(mon, 6);
-    const list = activities.filter((a) => a.date >= mon && a.date <= sun);
+    const list = activities.filter((a) => isDone(a) && a.date >= mon && a.date <= sun);
     const pre = list.filter((a) => a.type === 'prelisting');
     return {
       mon,

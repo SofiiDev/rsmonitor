@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type FormEvent, type ReactNode } from 'react';
 import { useStore } from '../lib/store';
+import { today } from '../lib/dates';
 import type { Activity, ActivityType, Operation } from '../lib/types';
 import { emptyActivity } from '../lib/empty';
 import {
@@ -17,21 +18,33 @@ import { useToast } from './Toast';
 
 type Draft = Omit<Activity, 'id'> & { id?: string };
 
-const EditorContext = createContext<(initial?: Partial<Activity>) => void>(() => {});
+export interface EditorOptions {
+  /** Al guardar, limpia la "próxima acción" de este contacto si no se cargó una nueva. */
+  completesContactAction?: string;
+}
+
+type OpenEditor = (initial?: Partial<Activity>, options?: EditorOptions) => void;
+
+const EditorContext = createContext<OpenEditor>(() => {});
 
 /** Permite abrir el formulario de actividad desde cualquier pantalla. */
 export function ActivityEditorProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [options, setOptions] = useState<EditorOptions>({});
 
-  const open = useCallback((initial: Partial<Activity> = {}) => {
-    setDraft({ ...emptyActivity(), ...initial });
+  const open = useCallback<OpenEditor>((initial = {}, opts = {}) => {
+    const d = { ...emptyActivity(), ...initial };
+    if (initial.done === undefined && !initial.id) d.done = d.date <= today();
+    if (d.time) d.time = d.time.slice(0, 5);
+    setDraft(d);
+    setOptions(opts);
   }, []);
 
   return (
     <EditorContext.Provider value={open}>
       {children}
       <Sheet open={draft !== null} title={draft?.id ? 'Editar actividad' : 'Registrar actividad'} onClose={() => setDraft(null)}>
-        {draft && <ActivityForm key={draft.id ?? 'new'} initial={draft} onDone={() => setDraft(null)} />}
+        {draft && <ActivityForm key={draft.id ?? 'new'} initial={draft} options={options} onDone={() => setDraft(null)} />}
       </Sheet>
     </EditorContext.Provider>
   );
@@ -41,7 +54,7 @@ export function useActivityEditor() {
   return useContext(EditorContext);
 }
 
-function ActivityForm({ initial, onDone }: { initial: Draft; onDone: () => void }) {
+function ActivityForm({ initial, options, onDone }: { initial: Draft; options: EditorOptions; onDone: () => void }) {
   const { contacts, create, save, remove } = useStore();
   const toast = useToast();
   const [a, setA] = useState<Draft>(initial);
@@ -49,6 +62,7 @@ function ActivityForm({ initial, onDone }: { initial: Draft; onDone: () => void 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [titleError, setTitleError] = useState<string | undefined>();
+  const [doneTouched, setDoneTouched] = useState(Boolean(initial.id));
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setA((p) => ({ ...p, [k]: v }));
   const str = (v: string) => (v.trim() === '' ? null : v);
@@ -78,8 +92,10 @@ function ActivityForm({ initial, onDone }: { initial: Draft; onDone: () => void 
       // Mantiene la "próxima acción" de la ficha del contacto al día.
       if (contact && updateContact && a.next_action) {
         await save('contacts', contact.id, { next_action: a.next_action, next_action_date: a.next_action_date });
+      } else if (options.completesContactAction && a.done) {
+        await save('contacts', options.completesContactAction, { next_action: null, next_action_date: null });
       }
-      toast(a.id ? 'Actividad actualizada' : 'Actividad registrada');
+      toast(a.id ? 'Actividad actualizada' : a.done ? 'Actividad registrada' : 'Actividad agendada');
       onDone();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar.');
@@ -144,7 +160,30 @@ function ActivityForm({ initial, onDone }: { initial: Draft; onDone: () => void 
           error={titleError}
           placeholder={ACTIVITY_TYPES.find((t) => t.value === a.type)?.hint}
         />
-        <TextField label="Fecha" type="date" required value={a.date} onChange={(v) => set('date', v || a.date)} />
+        <TextField
+          label="Fecha"
+          type="date"
+          required
+          value={a.date}
+          onChange={(v) => {
+            const date = v || a.date;
+            setA((p) => ({ ...p, date, done: doneTouched ? p.done : date <= today() }));
+          }}
+        />
+        <TextField label="Hora (opcional)" type="time" value={a.time} onChange={(v) => set('time', str(v))} />
+        <ChipGroup<'hecha' | 'pendiente'>
+          legend="Estado"
+          name="done"
+          value={a.done ? 'hecha' : 'pendiente'}
+          onChange={(v) => {
+            set('done', v === 'hecha');
+            setDoneTouched(true);
+          }}
+          options={[
+            { value: 'pendiente', label: 'Pendiente / agendada' },
+            { value: 'hecha', label: 'Hecha' },
+          ]}
+        />
         <SelectField
           label="Contacto"
           value={a.contact_id}

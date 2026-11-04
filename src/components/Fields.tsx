@@ -47,7 +47,7 @@ export function TextField({
 }: Base & {
   value: string | number | null | undefined;
   onChange: (v: string) => void;
-  type?: 'text' | 'email' | 'tel' | 'date' | 'number' | 'password' | 'search' | 'url';
+  type?: 'text' | 'email' | 'tel' | 'date' | 'time' | 'number' | 'password' | 'search' | 'url';
   required?: boolean;
   autoComplete?: string;
   inputMode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email' | 'search';

@@ -7,7 +7,7 @@ import { LEVELS } from '../lib/options';
 import { formatShort, relativeDay, today } from '../lib/dates';
 import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
-import { LevelBadge, activityKind } from '../components/Bits';
+import { LevelBadge, activityKind, waLink } from '../components/Bits';
 import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
 import { useActivityEditor } from '../components/ActivityEditor';
@@ -39,12 +39,6 @@ function Facts({ items }: { items: [string, ReactNode][] }) {
   );
 }
 
-function waLink(phone: string) {
-  let digits = phone.replace(/\D/g, '');
-  if (!digits.startsWith('54')) digits = `549${digits}`; // números locales de Argentina
-  return `https://wa.me/${digits}`;
-}
-
 export function ContactDetail() {
   const { id } = useParams();
   const { contacts, activities, save, remove, loading } = useStore();
@@ -66,7 +60,7 @@ export function ContactDetail() {
   }
 
   const history = activities.filter((a) => a.contact_id === c.id).sort((a, b) => b.date.localeCompare(a.date));
-  const lastContact = history.find((a) => a.date <= t)?.date;
+  const lastContact = history.find((a) => a.done !== false && a.date <= t)?.date;
 
   async function onDelete(contact: Contact) {
     if (!window.confirm(`¿Eliminar a ${contact.full_name}? Sus actividades se conservan sin contacto asociado.`)) return;
@@ -199,6 +193,7 @@ export function ContactDetail() {
                             {formatShort(a.date)} · {activityKind(a)}
                             {a.channel && ` · ${a.channel}`}
                             {a.conversation_status && ` · ${a.conversation_status}`}
+                            {a.done === false && ' · pendiente'}
                           </span>
                           {a.result && (
                             <span className="meta" style={{ display: 'block' }}>

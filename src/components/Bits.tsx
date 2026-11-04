@@ -46,3 +46,13 @@ export function Stat({ label, value, goal, suffix }: { label: string; value: num
     </div>
   );
 }
+
+export function waLink(phone: string) {
+  let digits = phone.replace(/\D/g, '');
+  if (!digits.startsWith('54')) digits = `549${digits}`; // números locales de Argentina
+  return `https://wa.me/${digits}`;
+}
+
+export function formatTime(time: string | null): string | null {
+  return time ? time.slice(0, 5) : null;
+}

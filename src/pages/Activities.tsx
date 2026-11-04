@@ -1,13 +1,13 @@
 import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { addDays, formatShort, formatWeekday, isoWeek, startOfWeek, today } from '../lib/dates';
-import { countByCategory, countByType, inRange } from '../lib/metrics';
+import { countByCategory, countByType, inRange, isDone } from '../lib/metrics';
 import { ACTIVITY_LABEL, ACTIVITY_TYPES, CATEGORIES, CATEGORY_OF } from '../lib/options';
 import type { ActivityType } from '../lib/types';
 import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
 import { useActivityEditor } from '../components/ActivityEditor';
-import { activityKind } from '../components/Bits';
+import { activityKind, formatTime } from '../components/Bits';
 
 const SUMMARY: ActivityType[] = ['contacto', 'reunion_cliente', 'prelisting', 'acm', 'captacion', 'visita', 'cierre', 'farming'];
 
@@ -35,8 +35,10 @@ export function Activities() {
   };
 
   const weekList = inRange(activities, monday, sunday);
-  const counts = countByType(weekList);
-  const byCategory = countByCategory(weekList);
+  const doneList = weekList.filter(isDone);
+  const counts = countByType(doneList);
+  const byCategory = countByCategory(doneList);
+  const pendingCount = weekList.length - doneList.length;
   const shown = !filter
     ? weekList
     : filter.startsWith('cat:')
@@ -74,6 +76,11 @@ export function Activities() {
             </li>
           ))}
         </ul>
+        {pendingCount > 0 && (
+          <p className="muted small">
+            Los totales cuentan solo lo hecho. Hay {pendingCount} {pendingCount === 1 ? 'actividad agendada' : 'actividades agendadas'} (borde punteado).
+          </p>
+        )}
         <ul className="row muted" style={{ listStyle: 'none', margin: 0, padding: 0, columnGap: 16 }}>
           {SUMMARY.map((type) => (
             <li key={type} className="small">
@@ -106,7 +113,7 @@ export function Activities() {
 
       <div className="week">
         {days.map((d) => {
-          const items = shown.filter((a) => a.date === d);
+          const items = shown.filter((a) => a.date === d).sort((x, y) => (x.time ?? '99').localeCompare(y.time ?? '99'));
           const label = `${formatWeekday(d)} ${formatShort(d)}`;
           return (
             <section key={d} className={`day ${d === t ? 'is-today' : ''}`} aria-label={d === t ? `${label} (hoy)` : label}>
@@ -121,10 +128,14 @@ export function Activities() {
                 <ul>
                   {items.map((a) => (
                     <li key={a.id}>
-                      <button type="button" className={`activity-chip cat-${CATEGORY_OF[a.type]}`} onClick={() => openEditor(a)}>
+                      <button type="button" className={`activity-chip cat-${CATEGORY_OF[a.type]} ${isDone(a) ? '' : 'is-pending'}`} onClick={() => openEditor(a)}>
                         <span className={`cat-dot cat-${CATEGORY_OF[a.type]}`} aria-hidden="true" />
                         <span>
-                          <span className="kind">{activityKind(a)}</span>
+                          <span className="kind">
+                            {a.time && <span className="time">{formatTime(a.time)} · </span>}
+                            {activityKind(a)}
+                            {!isDone(a) && ' · pendiente'}
+                          </span>
                           <span className="what">
                             {a.title}
                             {a.contact_id && byId.get(a.contact_id) ? ` — ${byId.get(a.contact_id)}` : ''}

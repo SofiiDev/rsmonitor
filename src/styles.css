@@ -1076,3 +1076,91 @@ td input {
   border-color: var(--text);
   color: var(--surface);
 }
+
+/* ───────────────────────── Para hacer hoy ───────────────────────── */
+.task-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9375rem;
+}
+.tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.task {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 12px;
+  min-height: 56px;
+  border-radius: var(--radius-sm);
+  background: var(--cat-soft, var(--surface-2));
+  border-left: 4px solid var(--cat, var(--border));
+}
+.task .meta {
+  display: block;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.task-title {
+  display: block;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+}
+a.task-title:hover {
+  text-decoration: underline;
+}
+.task-check {
+  width: 26px !important;
+  height: 26px !important;
+  flex: none;
+  cursor: pointer;
+}
+.task.is-done .task-title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+.task.is-done {
+  opacity: 0.8;
+}
+.task-done > summary {
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.task-done[open] > summary {
+  margin-bottom: 8px;
+}
+.quick-add {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: stretch;
+}
+.quick-add .grow {
+  flex: 1 1 220px;
+}
+.quick-add select {
+  max-width: 200px;
+}
+
+/* Actividades pendientes en la vista semanal: borde punteado */
+.activity-chip.is-pending {
+  background: var(--surface);
+  outline: 1px dashed var(--cat);
+  outline-offset: -1px;
+}
+.activity-chip .time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
