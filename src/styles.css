@@ -1164,3 +1164,55 @@ a.task-title:hover {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
+
+/* ───────────────────────── Escritorio ancho ───────────────────────── */
+.today-layout,
+.today-side {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.today-layout > *,
+.today-side > *,
+.today-cards > * {
+  min-width: 0;
+}
+.today-cards {
+  display: grid;
+  gap: 16px;
+}
+@media (min-width: 720px) {
+  .today-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 900px) {
+  .main {
+    max-width: 1480px;
+  }
+}
+@media (min-width: 1200px) {
+  .today-layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(320px, 1fr);
+    align-items: start;
+  }
+  .today-side .stats,
+  .today-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .today-cards {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 1100px) {
+  .week .day {
+    padding: 8px;
+  }
+  .activity-chip {
+    padding: 6px 8px;
+    font-size: 0.8125rem;
+  }
+}
+
+/* El título recibe el foco al cambiar de pantalla (para lectores); no hace falta el recuadro */
+h1[tabindex='-1']:focus {
+  outline: none;
+}

@@ -55,7 +55,7 @@ export function Today() {
         }
       />
 
-      <div className="stack">
+      <div className="today-layout">
         <section className="card stack" aria-labelledby="todo-title">
           <div className="card-header" style={{ marginBottom: 0 }}>
             <h2 id="todo-title">Para hacer hoy</h2>
@@ -161,6 +161,7 @@ export function Today() {
           )}
         </section>
 
+        <div className="today-side">
         <section aria-labelledby="week-title" className="stack-sm">
           <h2 id="week-title">Esta semana</h2>
           <div className="stats">
@@ -175,7 +176,7 @@ export function Today() {
           </p>
         </section>
 
-        <div className="grid-2">
+        <div className="today-cards">
           <section className="card" aria-labelledby="upcoming-title">
             <div className="card-header">
               <h2 id="upcoming-title">Próximos 7 días</h2>
@@ -247,6 +248,7 @@ export function Today() {
               </ul>
             )}
           </section>
+        </div>
         </div>
       </div>
     </>

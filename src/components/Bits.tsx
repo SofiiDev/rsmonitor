@@ -9,8 +9,8 @@ export function LevelBadge({ level }: { level: Level | null }) {
   );
 }
 
-export function activityKind(a: Activity): string {
-  const parts = [CATEGORY_LABEL[CATEGORY_OF[a.type]], ACTIVITY_LABEL[a.type]];
+export function activityKind(a: Activity, { withCategory = true } = {}): string {
+  const parts = [...(withCategory ? [CATEGORY_LABEL[CATEGORY_OF[a.type]]] : []), ACTIVITY_LABEL[a.type]];
   if (a.operation) parts.push(a.operation);
   if (a.source) parts.push(SOURCE_LABEL[a.source] ?? a.source);
   return [...new Set(parts)].join(' · ');

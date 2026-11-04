@@ -2,7 +2,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { addDays, formatShort, formatWeekday, isoWeek, startOfWeek, today } from '../lib/dates';
 import { countByCategory, countByType, inRange, isDone } from '../lib/metrics';
-import { ACTIVITY_LABEL, ACTIVITY_TYPES, CATEGORIES, CATEGORY_OF } from '../lib/options';
+import { ACTIVITY_LABEL, ACTIVITY_TYPES, CATEGORIES, CATEGORY_LABEL, CATEGORY_OF } from '../lib/options';
 import type { ActivityType } from '../lib/types';
 import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
@@ -133,7 +133,9 @@ export function Activities() {
                         <span>
                           <span className="kind">
                             {a.time && <span className="time">{formatTime(a.time)} · </span>}
-                            {activityKind(a)}
+                            {/* En la semana el color ya indica la categoría; queda en texto para lectores de pantalla */}
+                            <span className="visually-hidden">{CATEGORY_LABEL[CATEGORY_OF[a.type]]}: </span>
+                            {activityKind(a, { withCategory: false })}
                             {!isDone(a) && ' · pendiente'}
                           </span>
                           <span className="what">
