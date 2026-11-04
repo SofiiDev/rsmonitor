@@ -103,15 +103,15 @@ export function Today() {
           </TaskGroup>
 
           {agenda.birthdays.length > 0 && (
-            <TaskGroup title="Cumpleaños de hoy" count={agenda.birthdays.length}>
-              {agenda.birthdays.map((c) => (
-                <li key={c.id} className="task">
+            <TaskGroup title="Cumpleaños y fechas de hoy" count={agenda.birthdays.length}>
+              {agenda.birthdays.map(({ contact: c, label, own }) => (
+                <li key={`${c.id}-${label}`} className="task">
                   <Icon name="cake" />
                   <span className="grow">
                     <Link to={`/contactos/${c.id}`} className="task-title">
                       {c.full_name}
                     </Link>
-                    <span className="meta">Saludalo hoy</span>
+                    <span className="meta">{own ? 'Cumple hoy · saludalo' : `${label} · buen motivo para escribirle`}</span>
                   </span>
                   {c.phone && (
                     <a className="btn" href={waLink(c.phone)} target="_blank" rel="noopener noreferrer">
@@ -224,21 +224,21 @@ export function Today() {
 
           <section className="card" aria-labelledby="bday-title">
             <div className="card-header">
-              <h2 id="bday-title">Cumpleaños próximos</h2>
+              <h2 id="bday-title">Cumpleaños y fechas próximas</h2>
               <Icon name="cake" />
             </div>
             {birthdays.length === 0 ? (
               <p className="empty">Sin cumpleaños en las próximas dos semanas.</p>
             ) : (
               <ul className="list">
-                {birthdays.map(({ contact: c, date }) => (
-                  <li key={c.id}>
+                {birthdays.map(({ contact: c, date, label }) => (
+                  <li key={`${c.id}-${label}`}>
                     <Link to={`/contactos/${c.id}`} className="list-item">
                       <LevelBadge level={c.level} />
                       <span className="grow">
                         <span className="title">{c.full_name}</span>
                         <span className="meta" style={{ display: 'block' }}>
-                          {formatShort(date)}
+                          {label} · {formatShort(date)}
                         </span>
                       </span>
                       <span className="badge">{relativeDay(date, t)}</span>

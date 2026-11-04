@@ -236,8 +236,24 @@ export function ContactDetail() {
                   ['Profesión / actividad', c.occupation],
                   ['Empresa', c.company],
                   ['Estado familiar', c.family_status],
+                  ['¿Es padre / madre?', yesNo(c.is_parent)],
                   ['Hijos', c.children],
-                  ['Mascotas', c.pets],
+                  ['¿Tiene mascotas?', yesNo(c.has_pets)],
+                  ['Mascota', c.pets],
+                  [
+                    'Cumpleaños y fechas de familiares',
+                    c.family_dates?.length ? (
+                      <ul className="plain-list">
+                        {c.family_dates.map((f, i) => (
+                          <li key={i}>
+                            {f.name}
+                            {f.relation && ` (${f.relation})`}: {f.date ? formatShort(f.date) : 'sin fecha'}
+                            {f.kind !== 'cumpleanos' && ` · ${f.kind === 'aniversario' ? 'aniversario' : 'otra fecha'}`}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null,
+                  ],
                   ['Equipo de fútbol', c.football_team],
                   ['Intereses y hobbies', c.hobbies],
                   ['Lugares que frecuenta', c.places],

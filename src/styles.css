@@ -1216,3 +1216,50 @@ a.task-title:hover {
 h1[tabindex='-1']:focus {
   outline: none;
 }
+
+/* Fechas de familiares */
+.family-dates {
+  display: grid;
+  gap: 10px;
+}
+.family-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.family-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  align-items: end;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.family-row .btn-icon {
+  justify-self: end;
+  grid-column: 2;
+}
+@media (min-width: 720px) {
+  .family-row {
+    grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
+  }
+  .family-row .btn-icon {
+    grid-column: auto;
+  }
+}
+.family-dates > .btn {
+  justify-self: start;
+}
+.plain-list {
+  margin: 0;
+  padding-left: 18px;
+}
+@media (min-width: 900px) {
+  dialog.sheet {
+    max-width: 780px;
+  }
+}

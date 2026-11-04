@@ -40,12 +40,15 @@ create table if not exists public.contacts (
   occupation       text,
   company          text,
   family_status    text,
+  is_parent        boolean,
   children         text,
+  has_pets         boolean,
   pets             text,
   football_team    text,
   hobbies          text,
   places           text,
   important_dates  text,
+  family_dates     jsonb not null default '[]'::jsonb, -- [{name, relation, date, kind}]
   values_notes     text,
 
   -- Oportunidad inmobiliaria

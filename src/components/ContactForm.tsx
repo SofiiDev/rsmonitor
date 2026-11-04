@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import type { Contact } from '../lib/types';
+import type { Contact, FamilyDate } from '../lib/types';
 import {
   BOND_QUALITY,
   BOND_TYPES,
@@ -14,6 +14,7 @@ import {
   URGENCY,
 } from '../lib/options';
 import { ChipGroup, Section, SelectField, TextArea, TextField, TriState } from './Fields';
+import { Icon } from './Icon';
 
 type Draft = Omit<Contact, 'id'> & { id?: string };
 
@@ -49,7 +50,8 @@ export function ContactForm({
     setBusy(true);
     setError(null);
     try {
-      await onSubmit({ ...c, full_name: c.full_name.trim() });
+      const family_dates = (c.family_dates ?? []).filter((f) => f.name.trim() || f.date);
+      await onSubmit({ ...c, full_name: c.full_name.trim(), family_dates });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar.');
       setBusy(false);
@@ -90,7 +92,7 @@ export function ContactForm({
       />
       {c.level && <p className="hint muted small">{LEVELS.find((l) => l.value === c.level)?.description}</p>}
 
-      <Section title="Contacto y origen" open={!initial.id}>
+      <Section title="Identificación y contacto" open>
         <TextField label="Fecha de nacimiento" type="date" {...t('birthday')} />
         <TextField label="Barrio / localidad" {...t('neighborhood')} />
         <TextField label="Redes (Instagram, LinkedIn…)" {...t('social')} />
@@ -101,7 +103,7 @@ export function ContactForm({
         <TextField label="Fecha de ingreso a la base" type="date" {...t('joined_on')} />
       </Section>
 
-      <Section title="La relación" open={!initial.id}>
+      <Section title="La relación" open>
         <SelectField label="Tipo de vínculo" options={BOND_TYPES} {...t('bond_type')} />
         <SelectField label="Frecuencia de contacto sugerida" options={FREQUENCIES} {...t('contact_frequency')} />
         <SelectField label="Estado de la relación" options={RELATIONSHIP_STATUS} {...t('relationship_status')} />
@@ -116,20 +118,23 @@ export function ContactForm({
         </label>
       </Section>
 
-      <Section title="Información personal">
+      <Section title="Información personal" open>
         <TextField label="Profesión / actividad" {...t('occupation')} />
         <TextField label="Empresa o lugar de trabajo" {...t('company')} />
         <TextField label="Estado familiar" {...t('family_status')} />
-        <TextField label="Hijos (nombres y edades)" {...t('children')} />
-        <TextField label="Mascotas" {...t('pets')} />
+        <TriState label="¿Es padre / madre?" value={c.is_parent} onChange={(v) => set('is_parent', v)} />
+        <TextField label="Hijos (nombres y edades aprox.)" {...t('children')} />
+        <TriState label="¿Tiene mascotas?" value={c.has_pets} onChange={(v) => set('has_pets', v)} />
+        <TextField label="Mascota (nombre / tipo)" {...t('pets')} />
         <TextField label="Equipo de fútbol" {...t('football_team')} />
         <TextField label="Intereses y hobbies" {...t('hobbies')} />
         <TextField label="Lugares que frecuenta" {...t('places')} />
-        <TextArea label="Fechas o acontecimientos importantes" className="span-2" rows={2} {...t('important_dates')} />
+        <FamilyDatesEditor className="span-2" value={c.family_dates ?? []} onChange={(v) => set('family_dates', v)} />
+        <TextArea label="Otras fechas o acontecimientos importantes" className="span-2" rows={2} {...t('important_dates')} />
         <TextArea label="Intereses, valores o temas importantes" className="span-2" rows={2} {...t('values_notes')} />
       </Section>
 
-      <Section title="Oportunidad inmobiliaria">
+      <Section title="Oportunidad inmobiliaria" open>
         <SelectField label="Situación actual" options={OPPORTUNITY_STATUS} {...t('opportunity_status')} />
         <SelectField label="Tipo de operación" options={OPERATION_TYPES} {...t('operation_type')} />
         <SelectField label="Rol" options={ROLES} {...t('role')} />
@@ -150,7 +155,7 @@ export function ContactForm({
         <TextArea label="Obstáculos o dudas" className="span-2" rows={2} {...t('obstacles')} />
       </Section>
 
-      <Section title="Observaciones">
+      <Section title="Observaciones" open>
         <TextArea label="Observaciones generales" className="span-2" rows={4} {...t('notes')} />
       </Section>
 
@@ -168,5 +173,51 @@ export function ContactForm({
         </button>
       </div>
     </form>
+  );
+}
+
+const KINDS: { value: FamilyDate['kind']; label: string }[] = [
+  { value: 'cumpleanos', label: 'Cumpleaños' },
+  { value: 'aniversario', label: 'Aniversario' },
+  { value: 'otra', label: 'Otra fecha' },
+];
+
+/** Cumpleaños y fechas de familiares: aparecen en "Hoy" el día que corresponde. */
+function FamilyDatesEditor({ value, onChange, className }: { value: FamilyDate[]; onChange: (v: FamilyDate[]) => void; className?: string }) {
+  const update = (i: number, patch: Partial<FamilyDate>) => onChange(value.map((f, j) => (j === i ? { ...f, ...patch } : f)));
+
+  return (
+    <fieldset className={`family-dates ${className ?? ''}`}>
+      <legend>Cumpleaños y fechas de familiares</legend>
+      <p className="hint muted small">Hijos, pareja, padres… Te van a aparecer en “Hoy” ese día. Si no sabés el año, poné cualquiera.</p>
+      {value.length > 0 && (
+        <ul className="family-list">
+          {value.map((f, i) => (
+            <li key={i} className="family-row">
+              <TextField label="Nombre" value={f.name} onChange={(v) => update(i, { name: v })} />
+              <TextField label="Parentesco" placeholder="hija, esposo…" value={f.relation} onChange={(v) => update(i, { relation: v })} />
+              <SelectField label="Tipo" required value={f.kind} onChange={(v) => update(i, { kind: v as FamilyDate['kind'] })} options={KINDS} />
+              <TextField label="Fecha" type="date" value={f.date} onChange={(v) => update(i, { date: v })} />
+              <button
+                type="button"
+                className="btn btn-ghost btn-icon"
+                aria-label={`Quitar ${f.name || 'esta fecha'}`}
+                onClick={() => onChange(value.filter((_, j) => j !== i))}
+              >
+                <Icon name="close" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <button
+        type="button"
+        className="btn"
+        onClick={() => onChange([...value, { name: '', relation: '', date: '', kind: 'cumpleanos' }])}
+      >
+        <Icon name="plus" />
+        Agregar fecha de un familiar
+      </button>
+    </fieldset>
   );
 }

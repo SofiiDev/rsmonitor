@@ -1,4 +1,4 @@
-import type { Activity, ActivityType, Category, Contact, Goal } from './types';
+import type { Activity, ActivityType, Category, Contact, FamilyDate, Goal } from './types';
 import { CATEGORY_OF } from './options';
 import { addDays, diffDays, fromISO, nextBirthday, startOfWeek, today } from './dates';
 
@@ -96,12 +96,27 @@ export function overdueByFrequency(contacts: Contact[], activities: Activity[], 
     .sort((a, b) => (a.contact.level ?? 'Z').localeCompare(b.contact.level ?? 'Z'));
 }
 
-export function upcomingBirthdays(contacts: Contact[], days = 14, ref = today()) {
-  return contacts
-    .filter((c) => c.birthday)
-    .map((c) => ({ contact: c, date: nextBirthday(c.birthday as string, ref) }))
-    .filter((x) => diffDays(x.date, ref) <= days)
-    .sort((a, b) => a.date.localeCompare(b.date));
+export interface UpcomingDate {
+  contact: Contact;
+  date: string;      // próxima ocurrencia
+  label: string;     // "Cumpleaños" o "Cumpleaños de Alma (hija)"
+  own: boolean;      // true = del contacto
+}
+
+const KIND_LABEL: Record<FamilyDate['kind'], string> = { cumpleanos: 'Cumpleaños', aniversario: 'Aniversario', otra: 'Fecha especial' };
+
+/** Cumpleaños del contacto y fechas de sus familiares en los próximos `days` días. */
+export function upcomingBirthdays(contacts: Contact[], days = 14, ref = today()): UpcomingDate[] {
+  const out: UpcomingDate[] = [];
+  for (const c of contacts) {
+    if (c.birthday) out.push({ contact: c, date: nextBirthday(c.birthday, ref), label: 'Cumpleaños', own: true });
+    for (const f of c.family_dates ?? []) {
+      if (!f.date) continue;
+      const who = [f.name, f.relation && `(${f.relation})`].filter(Boolean).join(' ');
+      out.push({ contact: c, date: nextBirthday(f.date, ref), label: `${KIND_LABEL[f.kind] ?? 'Fecha'} de ${who}`, own: false });
+    }
+  }
+  return out.filter((x) => diffDays(x.date, ref) <= days).sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export function formatMoney(n: number): string {
@@ -128,7 +143,7 @@ export interface Agenda {
   todayActivities: Activity[];     // agendadas para hoy (por hora)
   todayContacts: Contact[];        // recontactos programados para hoy
   recontacts: ReturnType<typeof overdueByFrequency>; // sugeridos por frecuencia
-  birthdays: Contact[];
+  birthdays: UpcomingDate[];
   doneToday: Activity[];
 }
 
@@ -147,7 +162,7 @@ export function buildAgenda(contacts: Contact[], activities: Activity[], t: stri
     recontacts: overdueByFrequency(contacts, activities, t)
       .filter((x) => !scheduled.has(x.contact.id) && !withAction.has(x.contact.id))
       .slice(0, maxSuggestions),
-    birthdays: upcomingBirthdays(contacts, 0, t).map((x) => x.contact),
+    birthdays: upcomingBirthdays(contacts, 0, t),
     doneToday: activities.filter((a) => isDone(a) && a.date === t).sort(byTime),
   };
 }

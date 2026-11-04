@@ -20,6 +20,11 @@ export function demoSeed(): { [K in TableName]: TableMap[K][] } {
       next_action: 'Llamar para seguimiento de tasación', next_action_date: t,
       opportunity_status: 'Oportunidad detectada', operation_type: 'Venta', role: 'Propietario',
       property_type: 'Departamento 3 amb.', budget: 'USD 165.000', urgency: '3 meses', probability: 'Media',
+      family_status: 'Casada', is_parent: true, children: 'Tomás (10), Julia (7)', has_pets: true, pets: 'Perro - Toby',
+      family_dates: [
+        { name: 'Tomás', relation: 'hijo', date: `2015-${t.slice(5, 10)}`, kind: 'cumpleanos' },
+        { name: 'Julia', relation: 'hija', date: `2018-${addDays(t, 6).slice(5, 10)}`, kind: 'cumpleanos' },
+      ],
     }),
     c('c2', {
       full_name: 'Martín Sosa', phone: '+54 9 11 5555-0202', level: 'B', bond_type: 'Contacto profesional',

@@ -53,12 +53,15 @@ export interface Contact {
   occupation: string | null;
   company: string | null;
   family_status: string | null;
+  is_parent: boolean | null;
   children: string | null;
+  has_pets: boolean | null;
   pets: string | null;
   football_team: string | null;
   hobbies: string | null;
   places: string | null;
   important_dates: string | null;
+  family_dates: FamilyDate[];
   values_notes: string | null;
 
   opportunity_status: string | null;
@@ -81,6 +84,14 @@ export interface Contact {
   competition: string | null;
 
   notes: string | null;
+}
+
+/** Cumpleaños u otra fecha de alguien cercano al contacto (hijos, pareja, padres…). */
+export interface FamilyDate {
+  name: string;          // "Alma"
+  relation: string;      // "hija", "esposo", "mamá"
+  date: string;          // 'YYYY-MM-DD' (si no sabés el año, poné cualquiera: se usa día y mes)
+  kind: 'cumpleanos' | 'aniversario' | 'otra';
 }
 
 export interface Activity {
