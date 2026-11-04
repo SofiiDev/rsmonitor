@@ -11,6 +11,7 @@ import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
 import { useActivityEditor } from '../components/ActivityEditor';
 import { ContactTimeline } from '../components/ContactTimeline';
+import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
 import { useToast } from '../components/Toast';
 
 type Tab = 'historial' | 'relacion' | 'personal' | 'oportunidad';
@@ -209,6 +210,12 @@ export function ContactDetail() {
                 items={[
                   ['Cumpleaños', c.birthday && formatShort(c.birthday)],
                   ['Profesión / actividad', c.occupation],
+                  [
+                    'Día de su profesión',
+                    professionDaysFor(c.occupation)
+                      .map((d) => `${d.label} (${formatProfessionDate(d.date)})`)
+                      .join(' · ') || null,
+                  ],
                   ['Empresa', c.company],
                   ['Estado familiar', c.family_status],
                   ['¿Es padre / madre?', yesNo(c.is_parent)],

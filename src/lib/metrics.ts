@@ -1,5 +1,6 @@
 import type { Activity, ActivityType, Category, Contact, FamilyDate, Goal } from './types';
 import { CATEGORY_OF } from './options';
+import { professionDaysFor } from './professionDays';
 import { addDays, diffDays, fromISO, nextBirthday, startOfWeek, today } from './dates';
 
 // Cálculos replicados de la planilla "OBJETIVOS Y TRACKEO".
@@ -101,6 +102,7 @@ export interface UpcomingDate {
   date: string;      // próxima ocurrencia
   label: string;     // "Cumpleaños" o "Cumpleaños de Alma (hija)"
   own: boolean;      // true = del contacto
+  profession?: boolean; // día de su profesión
 }
 
 const KIND_LABEL: Record<FamilyDate['kind'], string> = { cumpleanos: 'Cumpleaños', aniversario: 'Aniversario', otra: 'Fecha especial' };
@@ -114,6 +116,10 @@ export function upcomingBirthdays(contacts: Contact[], days = 14, ref = today())
       if (!f.date) continue;
       const who = [f.name, f.relation && `(${f.relation})`].filter(Boolean).join(' ');
       out.push({ contact: c, date: nextBirthday(f.date, ref), label: `${KIND_LABEL[f.kind] ?? 'Fecha'} de ${who}`, own: false });
+    }
+    // Día de su profesión (Día del Médico, del Maestro…)
+    for (const d of professionDaysFor(c.occupation)) {
+      out.push({ contact: c, date: nextBirthday(`2000-${d.date}`, ref), label: d.label, own: false, profession: true });
     }
   }
   return out.filter((x) => diffDays(x.date, ref) <= days).sort((a, b) => a.date.localeCompare(b.date));

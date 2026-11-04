@@ -103,15 +103,17 @@ export function Today() {
           </TaskGroup>
 
           {agenda.birthdays.length > 0 && (
-            <TaskGroup title="Cumpleaños y fechas de hoy" count={agenda.birthdays.length}>
-              {agenda.birthdays.map(({ contact: c, label, own }) => (
+            <TaskGroup title="Cumpleaños y fechas especiales de hoy" count={agenda.birthdays.length}>
+              {agenda.birthdays.map(({ contact: c, label, own, profession }) => (
                 <li key={`${c.id}-${label}`} className="task">
                   <Icon name="cake" />
                   <span className="grow">
                     <Link to={`/contactos/${c.id}`} className="task-title">
                       {c.full_name}
                     </Link>
-                    <span className="meta">{own ? 'Cumple hoy · saludalo' : `${label} · buen motivo para escribirle`}</span>
+                    <span className="meta">
+                      {own ? 'Cumple hoy · saludalo' : profession ? `Hoy es el ${label} · saludalo por su profesión` : `${label} · buen motivo para escribirle`}
+                    </span>
                   </span>
                   {c.phone && (
                     <a className="btn" href={waLink(c.phone)} target="_blank" rel="noopener noreferrer">

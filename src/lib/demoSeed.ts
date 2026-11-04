@@ -28,7 +28,7 @@ export function demoSeed(): { [K in TableName]: TableMap[K][] } {
     }),
     c('c2', {
       full_name: 'Martín Sosa', phone: '+54 9 11 5555-0202', level: 'B', bond_type: 'Contacto profesional',
-      contact_frequency: 'Mensual', relationship_status: 'Activa', neighborhood: 'Caballito, CABA',
+      contact_frequency: 'Mensual', relationship_status: 'Activa', neighborhood: 'Caballito, CABA', occupation: 'Médico clínico',
       next_action: 'Enviar 3 propiedades comparables', next_action_date: addDays(t, -2),
       opportunity_status: 'Conversación abierta', operation_type: 'Compra', role: 'Comprador',
     }),

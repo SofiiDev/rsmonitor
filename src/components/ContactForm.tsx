@@ -15,6 +15,7 @@ import {
 } from '../lib/options';
 import { ChipGroup, Section, SelectField, TextArea, TextField, TriState } from './Fields';
 import { Icon } from './Icon';
+import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
 
 type Draft = Omit<Contact, 'id'> & { id?: string };
 
@@ -119,7 +120,15 @@ export function ContactForm({
       </Section>
 
       <Section title="Información personal" open>
-        <TextField label="Profesión / actividad" {...t('occupation')} />
+        <TextField
+          label="Profesión / actividad"
+          {...t('occupation')}
+          hint={
+            professionDaysFor(c.occupation)
+              .map((d) => `${d.label}: ${formatProfessionDate(d.date)}`)
+              .join(' · ') || 'Si coincide con una profesión, te aviso en “Hoy” el día de esa profesión.'
+          }
+        />
         <TextField label="Empresa o lugar de trabajo" {...t('company')} />
         <TextField label="Estado familiar" {...t('family_status')} />
         <TriState label="¿Es padre / madre?" value={c.is_parent} onChange={(v) => set('is_parent', v)} />
