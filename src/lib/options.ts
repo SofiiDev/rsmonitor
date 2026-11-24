@@ -75,6 +75,15 @@ export const SOURCE_LABEL: Record<string, string> = Object.fromEntries(
   PRELISTING_SOURCES.map((s) => [s.value, s.label]),
 );
 
+export const TAG_SUGGESTIONS: { group: string; tags: string[] }[] = [
+  { group: 'Rol', tags: ['Dueño/a', 'Inquilino/a', 'Inversor/a', 'Comprador/a', 'Vendedor/a', 'Referidor/a'] },
+  { group: 'Rubro', tags: ['Colega inmobiliario', 'Desarrollador/a', 'Constructor/a', 'Encargado/a de edificio', 'Proveedor (escribano, gestor)', 'Ex cliente'] },
+  {
+    group: 'Situación',
+    tags: ['Busca comprar', 'Busca alquilar', 'Primera vivienda', 'Crédito hipotecario', 'Sucesión / herencia', 'Mudanza próxima', 'Divorcio / separación', 'Familia en crecimiento'],
+  },
+];
+
 export const MONTHS = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',

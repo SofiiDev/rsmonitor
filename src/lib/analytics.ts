@@ -181,12 +181,13 @@ export function categoriesFor(activities: Activity[], p: Period) {
   };
 }
 
-export function baseHealth(contacts: Contact[], activities: Activity[], ref: string) {
+export function baseHealth(contacts: Contact[], activities: Activity[], ref: string, extraOpportunities: { status: string | null }[] = []) {
   const byLevel = { A: 0, B: 0, C: 0, D: 0, sin: 0 };
   for (const c of contacts) byLevel[c.level ?? 'sin']++;
   const withFreq = contacts.filter((c) => c.contact_frequency && !c.do_not_contact);
   const overdue = overdueByFrequency(contacts, activities, ref);
-  const opportunities = contacts.filter((c) => c.opportunity_status && !['Sin oportunidad', 'Cerrada'].includes(c.opportunity_status)).length;
+  const isOpen = (s: string | null) => Boolean(s) && !['Sin oportunidad', 'Cerrada'].includes(s as string);
+  const opportunities = contacts.filter((c) => isOpen(c.opportunity_status)).length + extraOpportunities.filter((o) => isOpen(o.status)).length;
   return {
     total: contacts.length,
     byLevel,

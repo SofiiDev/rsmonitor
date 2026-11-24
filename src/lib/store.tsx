@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { demoBackend, supabase, supabaseBackend, type Backend } from './backend';
-import type { Activity, Contact, ContactEvent, Expense, Goal, TableMap, TableName } from './types';
+import type { Activity, Contact, ContactEvent, Expense, Goal, Opportunity, TableMap, TableName } from './types';
 import { contactChanges, type ChangeReason } from './history';
 
 type Data = {
@@ -10,9 +10,10 @@ type Data = {
   goals: Goal[];
   expenses: Expense[];
   contact_events: ContactEvent[];
+  opportunities: Opportunity[];
 };
 
-const EMPTY: Data = { contacts: [], activities: [], goals: [], expenses: [], contact_events: [] };
+const EMPTY: Data = { contacts: [], activities: [], goals: [], expenses: [], contact_events: [], opportunities: [] };
 
 interface StoreValue extends Data {
   mode: 'loading' | 'signed-out' | 'supabase' | 'demo';
@@ -76,16 +77,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      const [contacts, activities, goals, expenses, contact_events] = await Promise.all([
+      const [contacts, activities, goals, expenses, contact_events, opportunities] = await Promise.all([
         backend.list('contacts'),
         backend.list('activities'),
         backend.list('goals'),
         backend.list('expenses'),
         // Si todavía no se corrió la migración del historial, la app sigue funcionando sin él.
         backend.list('contact_events').catch(() => [] as ContactEvent[]),
+        backend.list('opportunities').catch(() => [] as Opportunity[]),
       ]);
       contacts.sort((a, b) => a.full_name.localeCompare(b.full_name, 'es'));
-      setData({ contacts, activities, goals, expenses, contact_events });
+      setData({ contacts, activities, goals, expenses, contact_events, opportunities });
     } catch (e) {
       setError(readableError(e));
     } finally {
@@ -156,6 +158,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         if (table === 'contacts') {
           next.activities = next.activities.map((a) => (a.contact_id === id ? { ...a, contact_id: null } : a));
           next.contact_events = next.contact_events.filter((e) => e.contact_id !== id);
+          next.opportunities = next.opportunities.filter((o) => o.contact_id !== id);
         }
         return next;
       });

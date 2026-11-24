@@ -1,5 +1,5 @@
 // Semáforo de calidad del contacto y nivel de oportunidad, calculados desde la ficha.
-import type { Activity, Contact } from './types';
+import type { Activity, Contact, Opportunity } from './types';
 import { diffDays, today } from './dates';
 import { lastContactDate } from './metrics';
 
@@ -81,7 +81,7 @@ export interface OpportunityResult {
 }
 
 /** Nivel 0–100: etapa de la oportunidad ajustada por probabilidad de concreción y urgencia. */
-export function opportunityLevel(c: Contact): OpportunityResult {
+export function opportunityLevel(c: Pick<Contact, 'opportunity_status' | 'probability' | 'urgency'>): OpportunityResult {
   const status = c.opportunity_status;
   if (!status || status === 'Sin oportunidad') {
     return { score: 0, level: 0, label: 'Sin oportunidad', reason: status ? 'Sin oportunidad detectada' : 'Situación de oportunidad sin cargar' };
@@ -103,4 +103,13 @@ export function opportunityLevel(c: Contact): OpportunityResult {
   const level = Math.max(1, Math.round(score / 20)) as OpportunityResult['level'];
   const label = score >= 70 ? 'Alta' : score >= 40 ? 'Media' : 'Baja';
   return { score, level, label, reason: extra.join(' · ') };
+}
+
+/** Mejor nivel entre la oportunidad principal de la ficha y las adicionales. */
+export function bestOpportunity(c: Contact, opportunities: Opportunity[]): OpportunityResult & { count: number } {
+  const extras = opportunities.filter((o) => o.contact_id === c.id);
+  const all = [opportunityLevel(c), ...extras.map((o) => opportunityLevel({ opportunity_status: o.status, probability: o.probability, urgency: o.urgency }))];
+  const open = all.filter((r) => r.score > 0 && r.label !== 'Cerrada').length;
+  const best = all.reduce((a, b) => (b.score > a.score ? b : a));
+  return { ...best, count: open, reason: extras.length ? `${best.reason} · ${all.filter((r) => r.score > 0).length} oportunidades` : best.reason };
 }

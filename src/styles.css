@@ -2564,3 +2564,122 @@ input[type='file'] {
   display: grid;
   gap: 8px;
 }
+
+/* ───────────────────────── Etiquetas ───────────────────────── */
+.tag-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.tag-more {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+.tag-picker {
+  display: grid;
+  gap: 8px;
+}
+.tag-group {
+  display: grid;
+  gap: 4px;
+}
+.tag-group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ───────────────────────── Oportunidades ───────────────────────── */
+.opp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+@media (min-width: 1300px) {
+  .opp-list { grid-template-columns: 1fr 1fr; }
+}
+.opp-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.opp-card .meta {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* ───────────────────────── Checklist de datos ───────────────────────── */
+.checklist {
+  display: grid;
+  gap: 8px;
+}
+.checklist h2 {
+  margin: 0;
+}
+.check-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.check-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8125rem;
+}
+.check-item.is-done {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--success-soft);
+  color: var(--success);
+  font-weight: 600;
+}
+.check-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px dashed var(--warning);
+  background: var(--warning-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.check-btn:hover {
+  border-style: solid;
+}
+.data-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--warning);
+}
+.data-badge.is-complete {
+  color: var(--success);
+}

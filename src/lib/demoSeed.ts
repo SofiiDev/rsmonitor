@@ -1,4 +1,4 @@
-import type { Activity, Contact, ContactEvent, Expense, Goal, TableMap, TableName } from './types';
+import type { Activity, Contact, ContactEvent, Expense, Goal, Opportunity, TableMap, TableName } from './types';
 import { addDays, startOfWeek, today } from './dates';
 import { defaultGoal } from './options';
 import { emptyContact } from './empty';
@@ -20,6 +20,7 @@ export function demoSeed(): { [K in TableName]: TableMap[K][] } {
       next_action: 'Llamar para seguimiento de tasación', next_action_date: t,
       opportunity_status: 'Oportunidad detectada', operation_type: 'Venta', role: 'Propietario',
       property_type: 'Departamento 3 amb.', budget: 'USD 165.000', urgency: '3 meses', probability: 'Media',
+      tags: ['Dueño/a', 'Busca comprar', 'Familia en crecimiento'],
       family_status: 'Casada', is_parent: true, children: 'Tomás (10), Julia (7)', has_pets: true, pets: 'Perro - Toby',
       family_dates: [
         { name: 'Tomás', relation: 'hijo', date: `2015-${t.slice(5, 10)}`, kind: 'cumpleanos' },
@@ -85,5 +86,13 @@ export function demoSeed(): { [K in TableName]: TableMap[K][] } {
     { id: 'ev4', contact_id: 'c1', kind: 'recontacto_programado', detail: 'Llamar para seguimiento de tasación', created_at: `${addDays(t, -5)}T18:01:00` },
   ];
 
-  return { contacts, activities, goals, expenses, contact_events };
+  const opportunities: Opportunity[] = [
+    {
+      id: 'o1', contact_id: 'c1', title: 'Compra de casa en Villa Urquiza', status: 'Conversación abierta', operation_type: 'Compra',
+      role: 'Comprador', property_type: 'Casa 4 amb.', area_of_interest: 'Villa Urquiza', budget: 'USD 230.000', timeframe: '6 meses',
+      urgency: '6 meses', probability: 'Media', notes: 'Depende de vender el depto actual.',
+    },
+  ];
+
+  return { contacts, activities, goals, expenses, contact_events, opportunities };
 }

@@ -33,6 +33,10 @@ export interface Contact {
   birthday: string | null;
   neighborhood: string | null;
   social: string | null;
+  // Redes por separado (requieren la migración 007).
+  instagram?: string | null;
+  facebook?: string | null;
+  linkedin?: string | null;
   preferred_channel: string | null;
   agent: string | null;
   source: string | null;
@@ -50,6 +54,8 @@ export interface Contact {
   related_people: string | null;
   /** Vínculos con otros contactos de la base (requiere la migración 006). */
   related_contacts?: { id: string; relation: string }[];
+  /** Etiquetas libres: Dueño/a, Inquilino/a, Inversor/a… (requiere la migración 007). */
+  tags?: string[];
   do_not_contact: boolean;
 
   occupation: string | null;
@@ -142,6 +148,26 @@ export interface ContactEvent {
   detail: string | null;
 }
 
+/** Oportunidad inmobiliaria adicional de un contacto (la principal vive en la ficha). */
+export interface Opportunity {
+  id: string;
+  user_id?: string;
+  created_at?: string;
+  updated_at?: string;
+  contact_id: string;
+  title: string;
+  status: string | null;
+  operation_type: string | null;
+  role: string | null;
+  property_type: string | null;
+  area_of_interest: string | null;
+  budget: string | null;
+  timeframe: string | null;
+  urgency: string | null;
+  probability: string | null;
+  notes: string | null;
+}
+
 export interface Goal {
   id: string;
   user_id?: string;
@@ -171,6 +197,7 @@ export interface TableMap {
   goals: Goal;
   expenses: Expense;
   contact_events: ContactEvent;
+  opportunities: Opportunity;
 }
 
 export type TableName = keyof TableMap;

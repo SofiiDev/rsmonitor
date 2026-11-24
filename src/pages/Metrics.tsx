@@ -42,7 +42,7 @@ const PACE: Record<Kpi['pace'], { label: string; icon: string; className: string
 const TONE_LABEL = { good: 'Bien', warning: 'Atención', critical: 'Prioridad', info: 'Dato' } as const;
 
 export function Metrics() {
-  const { goals, activities, contacts } = useStore();
+  const { goals, activities, contacts, opportunities } = useStore();
   const t = useToday();
   const [period, setPeriod] = useState(() => currentPeriod('mes', t));
   const goal = goals.find((g) => g.year === period.year) ?? { id: '', ...defaultGoal(period.year) };
@@ -55,7 +55,7 @@ export function Metrics() {
   const cats = useMemo(() => categoriesFor(activities, period), [activities, period]);
   const curve = useMemo(() => cumulativeRevenue(goal, activities, period.year, t), [goal, activities, period.year, t]);
   const weeks = useMemo(() => lastWeeks(activities, t, 12), [activities, t]);
-  const health = useMemo(() => baseHealth(contacts, activities, t), [contacts, activities, t]);
+  const health = useMemo(() => baseHealth(contacts, activities, t, opportunities), [contacts, activities, t, opportunities]);
   const insights = useMemo(() => insightsFor(yearGoal, contacts, activities, t), [yearGoal, contacts, activities, t]);
   const isCurrent = period.from <= t && t <= period.to;
 

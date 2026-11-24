@@ -13,7 +13,11 @@ import { useActivityEditor } from '../components/ActivityEditor';
 import { ContactTimeline } from '../components/ContactTimeline';
 import { RelatedPeople } from '../components/RelatedPeople';
 import { OpportunityBar, QualityLight } from '../components/Indicators';
-import { contactQuality, opportunityLevel } from '../lib/scores';
+import { bestOpportunity, contactQuality } from '../lib/scores';
+import { socialUrl } from '../lib/checklist';
+import { ContactChecklist } from '../components/ContactChecklist';
+import { OpportunitiesPanel } from '../components/OpportunitiesPanel';
+import { TagChips } from '../components/Tags';
 import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
 import { useToast } from '../components/Toast';
 
@@ -45,11 +49,16 @@ function Facts({ items }: { items: [string, ReactNode][] }) {
 
 export function ContactDetail() {
   const { id } = useParams();
-  const { contacts, activities, contact_events, save, remove, loading } = useStore();
+  const { contacts, activities, contact_events, opportunities, save, remove, loading } = useStore();
   const openEditor = useActivityEditor();
   const toast = useToast();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
+  const [editingTab, setEditingTab] = useState<string | undefined>();
+  const editTab = (t: string | undefined) => {
+    setEditingTab(t);
+    setEditing(true);
+  };
   const [tab, setTab] = useState<Tab>('historial');
   const t = today();
 
@@ -90,11 +99,12 @@ export function ContactDetail() {
               {c.bond_type && ` · ${c.bond_type}`}
               {c.do_not_contact && ' · No contactar'}
             </span>
+            <TagChips tags={c.tags} />
           </span>
         }
         actions={
           <>
-            <button type="button" className="btn" onClick={() => setEditing(true)}>
+            <button type="button" className="btn" onClick={() => editTab(undefined)}>
               <Icon name="edit" />
               Editar
             </button>
@@ -107,7 +117,7 @@ export function ContactDetail() {
       />
 
       <div className="contact-layout">
-        {(c.phone || c.email) && (
+        {(c.phone || c.email || c.instagram || c.facebook || c.linkedin) && (
           <div className="row">
             {c.phone && (
               <>
@@ -127,6 +137,14 @@ export function ContactDetail() {
                 <Icon name="mail" />
                 Email
               </a>
+            )}
+            {(['instagram', 'facebook', 'linkedin'] as const).map((n) =>
+              c[n] ? (
+                <a key={n} className="btn btn-sm" href={socialUrl(n, c[n] as string)} target="_blank" rel="noopener noreferrer">
+                  {n === 'instagram' ? 'Instagram' : n === 'facebook' ? 'Facebook' : 'LinkedIn'}
+                  <span className="visually-hidden"> (se abre en otra pestaña)</span>
+                </a>
+              ) : null,
             )}
           </div>
         )}
@@ -151,6 +169,8 @@ export function ContactDetail() {
           </div>
         </div>
 
+        <ContactChecklist contact={c} onComplete={(tabName) => editTab(tabName)} />
+
         <RelatedPeople contact={c} />
 
         <div className="contact-indicators">
@@ -160,7 +180,7 @@ export function ContactDetail() {
           </div>
           <div className="stat">
             <span className="stat-label">Nivel de oportunidad</span>
-            <OpportunityBar result={opportunityLevel(c)} size="lg" showReason />
+            <OpportunityBar result={bestOpportunity(c, opportunities)} size="lg" showReason />
           </div>
         </div>
 
@@ -258,28 +278,27 @@ export function ContactDetail() {
             )}
 
             {tab === 'oportunidad' && (
-              <Facts
-                items={[
-                  ['Situación', c.opportunity_status],
-                  ['Operación', c.operation_type],
-                  ['Rol', c.role],
-                  ['Tipo de propiedad', c.property_type],
-                  ['Zona de interés', c.area_of_interest],
-                  ['Presupuesto', c.budget],
-                  ['Plazo', c.timeframe],
-                  ['Urgencia', c.urgency],
-                  ['Probabilidad', c.probability],
-                  ['Motivación', c.motivation],
-                  ['Deseo', c.desire],
-                  ['Necesidad', c.need],
-                  ['Posibilidad', c.possibility],
-                  ['Tiene propiedad para vender', yesNo(c.has_property_to_sell)],
-                  ['Necesita financiación', yesNo(c.needs_financing)],
-                  ['Otros decisores', c.other_deciders],
-                  ['Competencia', c.competition],
-                  ['Obstáculos o dudas', c.obstacles],
-                ]}
-              />
+              <div className="stack">
+                <OpportunitiesPanel contact={c} onEditMain={() => editTab('Oportunidad inmobiliaria')} />
+                <details className="form-section">
+                  <summary>Detalle de la oportunidad principal</summary>
+                  <Facts
+                    items={[
+                      ['Motivación', c.motivation],
+                      ['Deseo', c.desire],
+                      ['Necesidad', c.need],
+                      ['Posibilidad', c.possibility],
+                      ['Urgencia', c.urgency],
+                      ['Probabilidad', c.probability],
+                      ['Tiene propiedad para vender', yesNo(c.has_property_to_sell)],
+                      ['Necesita financiación', yesNo(c.needs_financing)],
+                      ['Otros decisores', c.other_deciders],
+                      ['Competencia', c.competition],
+                      ['Obstáculos o dudas', c.obstacles],
+                    ]}
+                  />
+                </details>
+              </div>
             )}
           </div>
         </div>
@@ -289,6 +308,7 @@ export function ContactDetail() {
         {editing && (
           <ContactForm
             initial={c}
+            initialTab={editingTab}
             onCancel={() => setEditing(false)}
             onDelete={() => onDelete(c)}
             onSubmit={async (draft) => {

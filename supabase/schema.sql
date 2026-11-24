@@ -17,7 +17,10 @@ create table if not exists public.contacts (
   email            text,
   birthday         date,
   neighborhood     text,
-  social           text,
+  social           text,          -- otras redes
+  instagram        text,
+  facebook         text,
+  linkedin         text,
   preferred_channel text,
   agent            text,
   source           text,          -- cómo llegó a vos
@@ -35,6 +38,7 @@ create table if not exists public.contacts (
   next_action_reason text,
   related_people   text,
   related_contacts jsonb not null default '[]'::jsonb, -- [{id, relation}] vínculos con otros contactos
+  tags             jsonb not null default '[]'::jsonb, -- etiquetas: Dueño/a, Inquilino/a, Inversor/a…
   do_not_contact   boolean not null default false,
 
   -- Información personal
@@ -125,6 +129,28 @@ create table if not exists public.contact_events (
 
 create index if not exists contact_events_contact_idx on public.contact_events (contact_id, created_at desc);
 
+-- ───────────────────────── Oportunidades adicionales de cada contacto ─────────────────────────
+create table if not exists public.opportunities (
+  id               uuid primary key default gen_random_uuid(),
+  user_id          uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  created_at       timestamptz not null default now(),
+  updated_at       timestamptz not null default now(),
+  contact_id       uuid not null references public.contacts (id) on delete cascade,
+  title            text not null,
+  status           text,
+  operation_type   text,
+  role             text,
+  property_type    text,
+  area_of_interest text,
+  budget           text,
+  timeframe        text,
+  urgency          text,
+  probability      text,
+  notes            text
+);
+
+create index if not exists opportunities_contact_idx on public.opportunities (contact_id);
+
 -- ───────────────────────── Objetivos anuales ─────────────────────────
 create table if not exists public.goals (
   id                     uuid primary key default gen_random_uuid(),
@@ -169,6 +195,9 @@ create trigger contacts_touch before update on public.contacts
 drop trigger if exists activities_touch on public.activities;
 create trigger activities_touch before update on public.activities
   for each row execute function public.touch_updated_at();
+drop trigger if exists opportunities_touch on public.opportunities;
+create trigger opportunities_touch before update on public.opportunities
+  for each row execute function public.touch_updated_at();
 drop trigger if exists goals_touch on public.goals;
 create trigger goals_touch before update on public.goals
   for each row execute function public.touch_updated_at();
@@ -179,11 +208,12 @@ alter table public.activities enable row level security;
 alter table public.goals      enable row level security;
 alter table public.expenses   enable row level security;
 alter table public.contact_events enable row level security;
+alter table public.opportunities enable row level security;
 
 do $$
 declare t text;
 begin
-  foreach t in array array['contacts','activities','goals','expenses','contact_events'] loop
+  foreach t in array array['contacts','activities','goals','expenses','contact_events','opportunities'] loop
     execute format('drop policy if exists "own rows" on public.%I', t);
     execute format(
       'create policy "own rows" on public.%I for all to authenticated

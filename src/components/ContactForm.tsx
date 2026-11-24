@@ -15,6 +15,7 @@ import {
 } from '../lib/options';
 import { ChipGroup, SelectField, TextArea, TextField, TriState } from './Fields';
 import { Icon } from './Icon';
+import { TagPicker } from './Tags';
 import { NextActionDate } from './NextActionDate';
 import { today } from '../lib/dates';
 import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
@@ -34,6 +35,7 @@ function TabPanel({ title, active, children }: { title: string; active: string; 
 
 export function ContactForm({
   initial,
+  initialTab,
   onSubmit,
   onCancel,
   onDelete,
@@ -42,12 +44,13 @@ export function ContactForm({
   onSubmit: (c: Draft) => Promise<void>;
   onCancel: () => void;
   onDelete?: () => void;
+  initialTab?: string;
 }) {
   const [c, setC] = useState<Draft>(initial);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | undefined>();
-  const [sec, setSec] = useState<string>(SECTIONS[0]);
+  const [sec, setSec] = useState<string>(initialTab && SECTIONS.includes(initialTab) ? initialTab : SECTIONS[0]);
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setC((p) => ({ ...p, [k]: v }));
   // Atajo para campos de texto: guarda null si queda vacío.
@@ -68,7 +71,12 @@ export function ContactForm({
       const family_dates = (c.family_dates ?? []).filter((f) => f.name.trim() || f.date);
       await onSubmit({ ...c, full_name: c.full_name.trim(), family_dates });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar.');
+      const msg = err instanceof Error ? err.message : 'No se pudo guardar.';
+      setError(
+        /tags|instagram|facebook|linkedin|related_contacts/.test(msg)
+          ? 'Para guardar etiquetas y redes falta correr en Supabase la migración supabase/migrations/007_tags_opportunities.sql.'
+          : msg,
+      );
       setBusy(false);
     }
   }
@@ -118,7 +126,11 @@ export function ContactForm({
       <TabPanel title="Identificación y contacto" active={sec}>
         <TextField label="Fecha de nacimiento" type="date" {...t('birthday')} />
         <TextField label="Barrio / localidad" {...t('neighborhood')} />
-        <TextField label="Redes (Instagram, LinkedIn…)" {...t('social')} />
+        <TextField label="Instagram" placeholder="@usuario" {...t('instagram')} />
+        <TextField label="Facebook" placeholder="usuario o enlace" {...t('facebook')} />
+        <TextField label="LinkedIn" placeholder="usuario o enlace" {...t('linkedin')} />
+        <TextField label="Otras redes / notas de redes" {...t('social')} />
+        <TagPicker value={c.tags ?? []} onChange={(v) => set('tags', v)} />
         <SelectField label="Canal preferido" options={CHANNELS} {...t('preferred_channel')} />
         <TextField label="Agente responsable" {...t('agent')} />
         <TextField label="Cómo llegó a vos" {...t('source')} />

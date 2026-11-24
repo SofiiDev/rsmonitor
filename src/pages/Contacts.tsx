@@ -9,7 +9,9 @@ import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
 import { LevelBadge, waLink } from '../components/Bits';
 import { OpportunityBar, QualityLight } from '../components/Indicators';
-import { contactQuality, opportunityLevel, type Light } from '../lib/scores';
+import { bestOpportunity, contactQuality, type Light } from '../lib/scores';
+import { completeness } from '../lib/checklist';
+import { TagChips } from '../components/Tags';
 import type { Contact } from '../lib/types';
 import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
@@ -19,7 +21,7 @@ import { useToast } from '../components/Toast';
 const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 export function Contacts() {
-  const { contacts, activities, create } = useStore();
+  const { contacts, activities, opportunities, create } = useStore();
   const toast = useToast();
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
@@ -29,6 +31,7 @@ export function Contacts() {
   const level = params.get('nivel') ?? '';
   const opp = params.get('oportunidad') ?? '';
   const order = params.get('orden') ?? '';
+  const tag = params.get('etiqueta') ?? '';
   const t = today();
 
   const setParam = (k: string, v: string) => {
@@ -43,22 +46,26 @@ export function Contacts() {
     return contacts.filter((c) => {
       if (level && (c.level ?? '') !== (level === 'sin' ? '' : level)) return false;
       if (opp && c.opportunity_status !== opp) return false;
+      if (tag && !(c.tags ?? []).includes(tag)) return false;
       if (!nq) return true;
       return [c.full_name, c.phone, c.email, c.neighborhood, c.notes].some((f) => f && normalize(f).includes(nq));
     });
-  }, [contacts, q, level, opp]);
+  }, [contacts, q, level, opp, tag]);
+
+  const allTags = useMemo(() => [...new Set(contacts.flatMap((c) => c.tags ?? []))].sort((a, b) => a.localeCompare(b, 'es')), [contacts]);
 
   const sorted = useMemo(() => {
     if (!order) return filtered;
     // "Sin datos" (gris) siempre al final.
     const rank: Record<Light, number> =
       order === 'semaforo-rojo' ? { rojo: 0, amarillo: 1, verde: 2, gris: 3 } : { verde: 0, amarillo: 1, rojo: 2, gris: 3 };
-    const key = (c: Contact) => (order === 'oportunidad' ? -opportunityLevel(c).score : rank[contactQuality(c, activities).light]);
+    const key = (c: Contact) =>
+      order === 'oportunidad' ? -bestOpportunity(c, opportunities).score : order === 'datos' ? completeness(c).pct : rank[contactQuality(c, activities).light];
     return filtered
       .map((c) => ({ c, k: key(c) }))
       .sort((a, b) => a.k - b.k)
       .map((x) => x.c);
-  }, [filtered, order, activities]);
+  }, [filtered, order, activities, opportunities]);
 
   const counts = useMemo(() => {
     const out: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
@@ -118,6 +125,21 @@ export function Contacts() {
             ))}
           </select>
         </div>
+        {allTags.length > 0 && (
+          <div className="field">
+            <label htmlFor="etiqueta" className="visually-hidden">
+              Etiqueta
+            </label>
+            <select id="etiqueta" value={tag} onChange={(e) => setParam('etiqueta', e.target.value)}>
+              <option value="">Todas las etiquetas</option>
+              {allTags.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="field">
           <label htmlFor="orden" className="visually-hidden">
             Ordenar
@@ -127,6 +149,7 @@ export function Contacts() {
             <option value="oportunidad">Orden: mayor oportunidad</option>
             <option value="semaforo-verde">Orden: semáforo verde primero</option>
             <option value="semaforo-rojo">Orden: semáforo rojo primero</option>
+            <option value="datos">Orden: fichas más incompletas</option>
           </select>
         </div>
       </div>
@@ -162,7 +185,9 @@ export function Contacts() {
                       </span>
                       <span className="indicators">
                         <QualityLight result={contactQuality(c, activities)} />
-                        <OpportunityBar result={opportunityLevel(c)} />
+                        <OpportunityBar result={bestOpportunity(c, opportunities)} />
+                        <DataBadge contact={c} />
+                        <TagChips tags={c.tags} max={3} />
                       </span>
                     </span>
                     {c.next_action_date && (
@@ -210,5 +235,15 @@ export function Contacts() {
         )}
       </Sheet>
     </>
+  );
+}
+
+function DataBadge({ contact }: { contact: Contact }) {
+  const { done, total, missing } = completeness(contact);
+  if (!missing.length) return <span className="data-badge is-complete">Datos completos</span>;
+  return (
+    <span className="data-badge" title={`Falta: ${missing.map((m) => m.label).join(', ')}`}>
+      Datos {done}/{total}
+    </span>
   );
 }
