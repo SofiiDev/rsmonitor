@@ -5,9 +5,10 @@ import { Icon } from './Icon';
 import type { Activity, Contact, ContactEvent } from '../lib/types';
 import { CATEGORY_OF } from '../lib/options';
 import { EVENT_LABEL, RECONTACT_KINDS } from '../lib/history';
-import { formatShort, fromISO, relativeDay, today } from '../lib/dates';
+import { addDays, formatShort, fromISO, relativeDay, today } from '../lib/dates';
 import { isDone } from '../lib/metrics';
 import { activityKind, formatTime } from './Bits';
+import { useActivityEditor } from './ActivityEditor';
 
 type Filter = 'todo' | 'interacciones' | 'notas' | 'recontactos' | 'cambios';
 
@@ -44,6 +45,7 @@ export function ContactTimeline({
   onOpen: (a: Activity) => void;
 }) {
   const [filter, setFilter] = useState<Filter>('todo');
+  const openEditor = useActivityEditor();
   const t = today();
 
   const scheduled = activities.filter((a) => !isDone(a) && a.date >= t).sort((a, b) => a.date.localeCompare(b.date));
@@ -117,7 +119,26 @@ export function ContactTimeline({
         </section>
       )}
 
-      <NoteComposer contactId={contact.id} />
+      <section className="history-add" aria-labelledby="tl-add">
+        <div className="spread">
+          <h3 id="tl-add" className="task-group-title">
+            Agregar al historial
+          </h3>
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => openEditor({ contact_id: contact.id, type: 'contacto', date: addDays(t, -1), done: true })}
+          >
+            <Icon name="plus" />
+            Acción pasada
+          </button>
+        </div>
+        <p className="muted small">
+          Una llamada, reunión, visita o lo que hayas hecho antes con {contact.full_name.split(' ')[0]}: elegí el tipo y la fecha, y queda guardada en el
+          historial.
+        </p>
+        <NoteComposer contactId={contact.id} today={t} />
+      </section>
 
       <div className="chips" role="group" aria-label="Filtrar historial">
         {FILTERS.map((f) => (
@@ -216,10 +237,11 @@ export function ContactTimeline({
   );
 }
 
-function NoteComposer({ contactId }: { contactId: string }) {
+function NoteComposer({ contactId, today: t }: { contactId: string; today: string }) {
   const { create } = useStore();
   const toast = useToast();
   const [text, setText] = useState('');
+  const [date, setDate] = useState(t);
   const [busy, setBusy] = useState(false);
 
   async function submit(e: FormEvent) {
@@ -227,9 +249,17 @@ function NoteComposer({ contactId }: { contactId: string }) {
     if (!text.trim()) return;
     setBusy(true);
     try {
-      await create('contact_events', { contact_id: contactId, kind: 'nota', detail: text.trim() });
+      // Si la nota es de otro día, se guarda con esa fecha (a la hora actual) para que quede en su lugar.
+      const row: Partial<ContactEvent> = { contact_id: contactId, kind: 'nota', detail: text.trim() };
+      if (date !== t) {
+        const [y, m, d] = date.split('-').map(Number);
+        const now = new Date();
+        row.created_at = new Date(y, m - 1, d, now.getHours(), now.getMinutes()).toISOString();
+      }
+      await create('contact_events', row);
       setText('');
-      toast('Nota guardada');
+      setDate(t);
+      toast(date === t ? 'Nota guardada' : 'Nota guardada con fecha pasada');
     } catch (err) {
       toast(err instanceof Error ? `Error: ${err.message}` : 'No se pudo guardar la nota');
     } finally {
@@ -249,8 +279,19 @@ function NoteComposer({ contactId }: { contactId: string }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <div className="form-actions">
-        <button type="submit" className="btn btn-primary" disabled={busy || !text.trim()}>
+      <div className="form-actions" style={{ alignItems: 'center' }}>
+        <label htmlFor={`note-date-${contactId}`} className="small muted">
+          Fecha de la nota
+        </label>
+        <input
+          id={`note-date-${contactId}`}
+          type="date"
+          value={date}
+          max={t}
+          onChange={(e) => setDate(e.target.value || t)}
+          style={{ width: 'auto' }}
+        />
+        <button type="submit" className="btn" disabled={busy || !text.trim()}>
           Guardar nota
         </button>
       </div>

@@ -25,20 +25,25 @@ export interface QualityResult {
  * Semáforo: parte de la "calidad del vínculo" y baja un escalón si el contacto
  * está atrasado respecto de su frecuencia sugerida (dos escalones si pasó el doble).
  */
+// Si falta la calidad del vínculo, el semáforo parte del nivel de relación.
+const LEVEL_BASE: Record<string, Light> = { A: 'verde', B: 'verde', C: 'amarillo', D: 'rojo' };
+
 export function contactQuality(c: Contact, activities: Activity[], ref = today()): QualityResult {
-  const base = c.bond_quality ? QUALITY_BASE[c.bond_quality] : undefined;
+  const fromLevel = !c.bond_quality && c.level ? LEVEL_BASE[c.level] : undefined;
+  const base = c.bond_quality ? QUALITY_BASE[c.bond_quality] : fromLevel;
   const last = lastContactDate(c.id, activities);
   const days = last ? diffDays(ref, last) : null;
   const limit = c.contact_frequency ? FREQ_DAYS[c.contact_frequency] : undefined;
 
   const parts: string[] = [];
   if (c.bond_quality) parts.push(`Vínculo: ${c.bond_quality.toLowerCase()}`);
+  else if (fromLevel) parts.push(`Según nivel ${c.level}`);
   if (days !== null) parts.push(days === 0 ? 'contactado hoy' : `último contacto hace ${days} ${days === 1 ? 'día' : 'días'}`);
   else parts.push('sin contactos registrados');
 
   if (c.do_not_contact) return { light: 'rojo', reason: 'Pidió no ser contactado' };
   if (c.relationship_status === 'Fría' && !base) return { light: 'rojo', reason: ['Relación fría', ...parts.slice(1)].join(' · ') };
-  if (!base) return { light: 'gris', reason: 'Cargá la calidad del vínculo para calcular el semáforo' };
+  if (!base) return { light: 'gris', reason: 'Cargá el nivel o la calidad del vínculo para calcular el semáforo' };
 
   let light = base;
   if (limit) {

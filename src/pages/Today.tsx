@@ -139,6 +139,18 @@ export function Today() {
                       {c.contact_frequency} · {last ? `último contacto ${formatShort(last)}` : 'sin contactos registrados'}
                     </span>
                   </span>
+                  {c.phone && (
+                    <a
+                      className="btn btn-ghost btn-icon wa-btn"
+                      href={waLink(c.phone)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Enviar WhatsApp a ${c.full_name} (se abre en otra pestaña)`}
+                      title="Enviar WhatsApp"
+                    >
+                      <Icon name="message" />
+                    </a>
+                  )}
                   <button
                     type="button"
                     className="btn"
@@ -317,6 +329,18 @@ function ActivityTask({ a, contact, showDate, today }: { a: Activity; contact?: 
             .join(' · ')}
         </span>
       </span>
+      {contact?.phone && !isDone(a) && (
+        <a
+          className="btn btn-ghost btn-icon wa-btn"
+          href={waLink(contact.phone)}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Enviar WhatsApp a ${contact.full_name} (se abre en otra pestaña)`}
+          title="Enviar WhatsApp"
+        >
+          <Icon name="message" />
+        </a>
+      )}
       <button type="button" className="btn btn-ghost btn-icon" onClick={() => openEditor(a)} aria-label={`Editar “${a.title}”`}>
         <Icon name="edit" />
       </button>

@@ -7,7 +7,7 @@ import { lastContactDate } from '../lib/metrics';
 import { formatShort, relativeDay, today } from '../lib/dates';
 import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
-import { LevelBadge } from '../components/Bits';
+import { LevelBadge, waLink } from '../components/Bits';
 import { OpportunityBar, QualityLight } from '../components/Indicators';
 import { contactQuality, opportunityLevel, type Light } from '../lib/scores';
 import type { Contact } from '../lib/types';
@@ -145,7 +145,7 @@ export function Contacts() {
             {sorted.map((c) => {
               const last = lastContactDate(c.id, activities);
               return (
-                <li key={c.id}>
+                <li key={c.id} className="row-with-action">
                   <Link to={`/contactos/${c.id}`} className="list-item">
                     <LevelBadge level={c.level} />
                     <span className="grow">
@@ -165,6 +165,18 @@ export function Contacts() {
                       </span>
                     )}
                   </Link>
+                  {c.phone && !c.do_not_contact && (
+                    <a
+                      className="btn btn-ghost btn-icon wa-btn"
+                      href={waLink(c.phone)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Enviar WhatsApp a ${c.full_name} (se abre en otra pestaña)`}
+                      title="Enviar WhatsApp"
+                    >
+                      <Icon name="message" />
+                    </a>
+                  )}
                 </li>
               );
             })}

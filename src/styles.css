@@ -2295,3 +2295,70 @@ button.tl-body:hover {
 @media (min-width: 720px) {
   .contact-indicators { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* Agregar al historial */
+.history-add {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.history-add .note-composer {
+  background: var(--surface-2);
+}
+
+/* Niveles A/B/C/D con colores de semáforo (la letra sigue visible: el color no va solo) */
+:root {
+  --lvl-a: #1e7d32;
+  --lvl-b: #e0a800;
+  --lvl-c: #e06a1b;
+  --lvl-d: #c62828;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lvl-a: #4caf50;
+    --lvl-b: #f5c26b;
+    --lvl-c: #ff9a52;
+    --lvl-d: #ef6b6b;
+  }
+}
+.level-A,
+.level-D {
+  color: #fff;
+}
+.level-B,
+.level-C {
+  color: #1d1300;
+}
+@media (prefers-color-scheme: dark) {
+  .level-A,
+  .level-B,
+  .level-C,
+  .level-D {
+    color: #0b1220;
+  }
+}
+
+/* Botón de WhatsApp en listas */
+.wa-btn {
+  flex: none;
+  color: #1e7d32;
+}
+@media (prefers-color-scheme: dark) {
+  .wa-btn {
+    color: #6fd08c;
+  }
+}
+
+.row-with-action {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.row-with-action > .list-item {
+  flex: 1;
+  min-width: 0;
+}

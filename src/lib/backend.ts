@@ -109,7 +109,7 @@ export function demoBackend(): Backend {
     },
     async insert(table, row) {
       const now = new Date().toISOString();
-      const full = { ...row, id: crypto.randomUUID(), created_at: now, updated_at: now };
+      const full = { created_at: now, ...row, id: crypto.randomUUID(), updated_at: now };
       (db()[table] as unknown[]).push(full);
       persist();
       return full as never;
