@@ -15,6 +15,8 @@ import {
 } from '../lib/options';
 import { ChipGroup, Section, SelectField, TextArea, TextField, TriState } from './Fields';
 import { Icon } from './Icon';
+import { NextActionDate } from './NextActionDate';
+import { today } from '../lib/dates';
 import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
 
 type Draft = Omit<Contact, 'id'> & { id?: string };
@@ -110,7 +112,7 @@ export function ContactForm({
         <SelectField label="Estado de la relación" options={RELATIONSHIP_STATUS} {...t('relationship_status')} />
         <SelectField label="Calidad del vínculo" options={BOND_QUALITY} {...t('bond_quality')} />
         <TextField label="Próxima acción" {...t('next_action')} />
-        <TextField label="Fecha de próxima acción" type="date" {...t('next_action_date')} />
+        <NextActionDate value={c.next_action_date} onChange={(v) => set('next_action_date', v)} base={today()} baseLabel="de hoy" />
         <TextField label="Motivo / objetivo de la próxima acción" className="span-2" {...t('next_action_reason')} />
         <TextField label="Personas relacionadas en la base" className="span-2" {...t('related_people')} />
         <label className="check span-2">

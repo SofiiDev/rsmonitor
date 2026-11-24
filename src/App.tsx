@@ -13,6 +13,7 @@ import { Activities } from './pages/Activities';
 import { Contacts } from './pages/Contacts';
 import { ContactDetail } from './pages/ContactDetail';
 import { Goals } from './pages/Goals';
+import { Metrics } from './pages/Metrics';
 
 function Shell() {
   const { mode } = useStore();
@@ -34,6 +35,7 @@ function Shell() {
           <Route path="actividades" element={<Activities />} />
           <Route path="contactos" element={<Contacts />} />
           <Route path="contactos/:id" element={<ContactDetail />} />
+          <Route path="metricas" element={<Metrics />} />
           <Route path="objetivos" element={<Goals />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

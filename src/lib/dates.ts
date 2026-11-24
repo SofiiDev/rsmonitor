@@ -76,3 +76,23 @@ export function nextBirthday(birthday: string, ref = today()): string {
   if (toISO(next) < ref) next = new Date(r.getFullYear() + 1, b.getMonth(), b.getDate());
   return toISO(next);
 }
+
+/** Suma meses sin desbordar (31 ene + 1 mes = 28/29 feb). */
+export function addMonths(s: string, n: number): string {
+  const d = fromISO(s);
+  const day = d.getDate();
+  d.setDate(1);
+  d.setMonth(d.getMonth() + n);
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, last));
+  return toISO(d);
+}
+
+export function startOfMonth(s: string): string {
+  return `${s.slice(0, 7)}-01`;
+}
+
+export function endOfMonth(s: string): string {
+  const d = fromISO(s);
+  return toISO(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+}

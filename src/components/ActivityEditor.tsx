@@ -14,6 +14,7 @@ import {
 } from '../lib/options';
 import { ChipGroup, DecimalField, SelectField, TextArea, TextField } from './Fields';
 import { Sheet } from './Sheet';
+import { NextActionDate } from './NextActionDate';
 import { useToast } from './Toast';
 
 type Draft = Omit<Activity, 'id'> & { id?: string };
@@ -247,7 +248,7 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
       <div className="form-grid">
         <TextArea label="Resultado / información nueva" className="span-2" rows={2} value={a.result} onChange={(v) => set('result', str(v))} />
         <TextField label="Próxima acción" value={a.next_action} onChange={(v) => set('next_action', str(v))} />
-        <TextField label="Fecha de próxima acción" type="date" value={a.next_action_date} onChange={(v) => set('next_action_date', str(v))} />
+        <NextActionDate value={a.next_action_date} onChange={(v) => set('next_action_date', v)} base={a.date} baseLabel="de la actividad" />
         {contact && a.next_action && (
           <label className="check span-2">
             <input type="checkbox" checked={updateContact} onChange={(e) => setUpdateContact(e.target.checked)} />
