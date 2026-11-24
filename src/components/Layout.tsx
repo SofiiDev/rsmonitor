@@ -74,30 +74,33 @@ export function Layout() {
         Saltar al contenido
       </a>
 
-      <aside className="sidebar">
+      <header className="shellbar">
         <Brand />
-        <button type="button" className="btn btn-primary btn-block" onClick={() => openEditor()}>
-          <Icon name="plus" />
-          Registrar actividad
-        </button>
-        <nav aria-label="Principal">{navLinks}</nav>
-        <div className="sidebar-footer">
-          <span>{mode === 'demo' ? 'Modo demo (datos en este dispositivo)' : userEmail}</span>
-          <button type="button" className="btn" onClick={signOut}>
+        <span className="shell-title" aria-hidden="true">
+          Gestión comercial
+        </span>
+        <div className="shell-actions">
+          <button type="button" className="btn btn-primary shell-register" onClick={() => openEditor()}>
+            <Icon name="plus" />
+            Registrar actividad
+          </button>
+          <span className="shell-user" title={mode === 'demo' ? 'Modo demo (datos en este dispositivo)' : userEmail ?? ''}>
+            <span className="avatar" aria-hidden="true">
+              {(mode === 'demo' ? 'D' : (userEmail ?? '?').charAt(0)).toUpperCase()}
+            </span>
+            <span className="shell-user-name">{mode === 'demo' ? 'Modo demo' : userEmail}</span>
+          </span>
+          <button type="button" className="btn btn-ghost btn-icon shell-icon" onClick={signOut} aria-label={mode === 'demo' ? 'Salir del demo' : 'Cerrar sesión'} title={mode === 'demo' ? 'Salir del demo' : 'Cerrar sesión'}>
             <Icon name="logout" />
-            {mode === 'demo' ? 'Salir del demo' : 'Cerrar sesión'}
           </button>
         </div>
+      </header>
+
+      <aside className="sidebar">
+        <nav aria-label="Principal">{navLinks}</nav>
       </aside>
 
-      <div>
-        <header className="topbar">
-          <Brand />
-          <button type="button" className="btn btn-ghost btn-icon" onClick={signOut} aria-label={mode === 'demo' ? 'Salir del demo' : 'Cerrar sesión'}>
-            <Icon name="logout" />
-          </button>
-        </header>
-
+      <div className="content">
         <main id="contenido" className="main" tabIndex={-1}>
           {mode === 'demo' && !demoHidden && (
             <p className="banner banner-compact small">
