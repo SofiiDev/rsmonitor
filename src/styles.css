@@ -2487,3 +2487,29 @@ dialog.sheet .form > .form-actions {
   border-top: 1px solid var(--border);
   z-index: 2;
 }
+
+
+/* Importación de Excel */
+.import-list {
+  max-height: 46dvh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+}
+.import-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+.import-row label {
+  cursor: pointer;
+  min-width: 0;
+}
+.import-row input[type='checkbox'] {
+  flex: none;
+}
+input[type='file'] {
+  padding: 8px;
+}

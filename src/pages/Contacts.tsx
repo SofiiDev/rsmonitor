@@ -13,6 +13,7 @@ import { contactQuality, opportunityLevel, type Light } from '../lib/scores';
 import type { Contact } from '../lib/types';
 import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
+import { ImportContacts } from '../components/ImportContacts';
 import { useToast } from '../components/Toast';
 
 const normalize = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -23,6 +24,7 @@ export function Contacts() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [adding, setAdding] = useState(false);
+  const [importing, setImporting] = useState(false);
   const q = params.get('q') ?? '';
   const level = params.get('nivel') ?? '';
   const opp = params.get('oportunidad') ?? '';
@@ -70,10 +72,15 @@ export function Contacts() {
         title="Contactos"
         subtitle={`${contacts.length} personas en tu base · A ${counts.A} · B ${counts.B} · C ${counts.C} · D ${counts.D}`}
         actions={
-          <button type="button" className="btn btn-primary" onClick={() => setAdding(true)}>
-            <Icon name="plus" />
-            Nuevo contacto
-          </button>
+          <>
+            <button type="button" className="btn" onClick={() => setImporting(true)}>
+              Importar Excel
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => setAdding(true)}>
+              <Icon name="plus" />
+              Nuevo contacto
+            </button>
+          </>
         }
       />
 
@@ -183,6 +190,10 @@ export function Contacts() {
           </ul>
         )}
       </div>
+
+      <Sheet open={importing} title="Importar contactos desde Excel" onClose={() => setImporting(false)}>
+        {importing && <ImportContacts onDone={() => setImporting(false)} />}
+      </Sheet>
 
       <Sheet open={adding} title="Nuevo contacto" onClose={() => setAdding(false)}>
         {adding && (
