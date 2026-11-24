@@ -105,7 +105,7 @@ export function ContactDetail() {
         }
       />
 
-      <div className="stack">
+      <div className="contact-layout">
         {(c.phone || c.email) && (
           <div className="row">
             {c.phone && (

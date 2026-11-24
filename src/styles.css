@@ -2362,3 +2362,128 @@ button.tl-body:hover {
   flex: 1;
   min-width: 0;
 }
+
+
+/* ═════════════════════════ Compacto: menos scroll vertical ═════════════════════════ */
+h1 { font-size: 1.375rem; }
+.page-header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+}
+.stack { gap: 12px; }
+.stack-sm { gap: 6px; }
+.card { padding: 16px; }
+.card > h2,
+.card-header { margin-bottom: 8px; }
+.stat { padding: 12px 14px; gap: 4px; }
+.stat-value { font-size: 1.5rem; }
+.kpi { padding: 12px 14px; }
+.list-item { min-height: 48px; padding: 8px 4px; }
+.form { gap: 12px; }
+.form-grid { gap: 12px; }
+.field { gap: 4px; }
+textarea { min-height: 64px; }
+.chip span { min-height: 34px; padding: 0 12px; }
+.task { min-height: 48px; padding: 6px 8px 6px 12px; }
+.tabs { margin-bottom: 12px; }
+.tabs button { padding: 8px 12px; }
+.empty { padding: 14px 8px; }
+.align-start { align-items: start; }
+@media (min-width: 900px) {
+  .main { padding: 20px 32px 40px; }
+}
+
+/* Aviso del demo en una línea */
+.banner-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 6px 6px 12px;
+  margin-bottom: 12px;
+}
+
+/* Hoy: dos columnas desde 1000 px */
+@media (min-width: 1000px) {
+  .today-layout {
+    grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1fr);
+    align-items: start;
+  }
+  .today-side .stats { grid-template-columns: 1fr 1fr; }
+  .today-cards { grid-template-columns: 1fr; }
+}
+
+/* Ficha de contacto: datos a la izquierda, historial a la derecha */
+.contact-layout {
+  display: grid;
+  gap: 12px;
+}
+.contact-layout > * { min-width: 0; }
+@media (min-width: 1100px) {
+  .contact-layout {
+    grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+    align-items: start;
+  }
+  .contact-layout > .card {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+  }
+  .contact-layout > :not(.card) { grid-column: 1; }
+  .contact-layout .stats,
+  .contact-layout .contact-indicators { grid-template-columns: 1fr; }
+  .contact-layout .stats { grid-template-columns: 1fr 1fr; }
+}
+
+/* Formularios: pestañas y grillas más anchas dentro de los diálogos */
+.form-tabs {
+  margin-bottom: 0;
+  position: sticky;
+  top: 52px;
+  background: var(--surface);
+  z-index: 1;
+}
+@media (min-width: 900px) {
+  dialog.sheet { max-width: 880px; }
+  dialog.sheet .form-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  dialog.sheet .form-grid .span-2 { grid-column: 1 / -1; }
+  .type-groups-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .type-groups-grid > .cat-negocio { grid-column: 1 / -1; }
+}
+.type-group { padding: 8px 10px; gap: 4px; }
+
+.history-add { padding: 10px 12px; gap: 8px; }
+.history-add .note-composer { padding: 8px 10px; gap: 6px; }
+.note-composer textarea { min-height: 44px; }
+.note-composer .form-actions { flex-wrap: wrap; }
+
+/* El atributo hidden siempre gana sobre display: grid/flex */
+[hidden] {
+  display: none !important;
+}
+
+/* Grilla de 2 columnas también dentro del diálogo ancho */
+@media (min-width: 640px) {
+  dialog.sheet .form-grid.form-grid-2 { grid-template-columns: 1fr 1fr; }
+}
+
+@media (min-width: 640px) {
+  .form-grid .span-desc { grid-column: span 1; }
+}
+@media (min-width: 900px) {
+  dialog.sheet .form-grid .span-desc { grid-column: span 2; }
+}
+
+/* Guardar / Cancelar siempre visibles al pie de los formularios en diálogos */
+dialog.sheet .form > .form-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 0 -20px;
+  padding: 10px 20px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 2;
+}

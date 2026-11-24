@@ -30,9 +30,8 @@ export function NextActionDate({
         type="date"
         value={value}
         onChange={(v) => onChange(v.trim() === '' ? null : v)}
-        hint={`Elegí un plazo y se completa sola (contando desde la fecha ${baseLabel}).`}
       />
-      <div className="row" role="group" aria-label="Plazos para la próxima acción">
+      <div className="row" role="group" aria-label={`Plazos para la próxima acción, contando desde la fecha ${baseLabel}`}>
         {SHORTCUTS.map((s) => {
           const date = s.add(base);
           return (

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { Icon, type IconName } from './Icon';
@@ -28,6 +28,21 @@ export function Layout() {
   const openEditor = useActivityEditor();
   const location = useLocation();
   const first = useRef(true);
+  const [demoHidden, setDemoHidden] = useState(() => {
+    try {
+      return sessionStorage.getItem('rsmonitor-demo-banner') === '0';
+    } catch {
+      return false;
+    }
+  });
+  const hideDemo = () => {
+    setDemoHidden(true);
+    try {
+      sessionStorage.setItem('rsmonitor-demo-banner', '0');
+    } catch {
+      /* sin almacenamiento: se oculta hasta recargar */
+    }
+  };
 
   // Al cambiar de pantalla, lleva el foco al título para lectores de pantalla y teclado.
   useEffect(() => {
@@ -84,9 +99,14 @@ export function Layout() {
         </header>
 
         <main id="contenido" className="main" tabIndex={-1}>
-          {mode === 'demo' && (
-            <p className="banner small" style={{ marginBottom: 16 }}>
-              Estás en <strong>modo demo</strong>: los datos se guardan solo en este navegador. Configurá Supabase para usar la app en todos tus dispositivos.
+          {mode === 'demo' && !demoHidden && (
+            <p className="banner banner-compact small">
+              <span>
+                <strong>Modo demo</strong>: los datos quedan solo en este navegador.
+              </span>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={hideDemo} aria-label="Ocultar aviso de modo demo">
+                Ocultar
+              </button>
             </p>
           )}
           {error && (

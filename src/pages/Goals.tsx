@@ -10,10 +10,19 @@ import { DecimalField, DecimalInput, TextField, parseDecimal } from '../componen
 import { Icon } from '../components/Icon';
 import { useToast } from '../components/Toast';
 
+type GoalTab = 'plan' | 'mensual' | 'ratios' | 'gastos';
+const GOAL_TABS: { id: GoalTab; label: string }[] = [
+  { id: 'plan', label: 'Plan anual' },
+  { id: 'mensual', label: 'Mes a mes' },
+  { id: 'ratios', label: 'Ratios y trackeo semanal' },
+  { id: 'gastos', label: 'Gastos' },
+];
+
 export function Goals() {
   const { goals, activities } = useStore();
   const t = today();
   const [year, setYear] = useState(Number(t.slice(0, 4)));
+  const [tab, setTab] = useState<GoalTab>('plan');
   const stored = goals.find((g) => g.year === year);
   const goal: Goal = stored ?? { id: '', ...defaultGoal(year) };
   const plan = planFor(goal);
@@ -50,6 +59,16 @@ export function Goals() {
           </p>
         )}
 
+        <div className="tabs" role="tablist" aria-label="Secciones de objetivos">
+          {GOAL_TABS.map((x) => (
+            <button key={x.id} type="button" role="tab" aria-selected={tab === x.id} onClick={() => setTab(x.id)}>
+              {x.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'plan' && (
+        <>
         <div className="stats">
           <Stat label="Facturación real" value={totalReal} goal={goal.annual_target} suffix="$" />
           <Stat label="Transacciones necesarias" value={totals.cierre} goal={plan.dealsNeeded} />
@@ -92,10 +111,16 @@ export function Goals() {
           </section>
         </div>
 
-        <MonthlyTable goal={goal} revenue={revenue} year={year} />
-        <Ratios totals={totals} acts={yearActs} />
-        <WeeklyTable year={year} goal={goal} />
-        <Expenses year={year} agentSplit={goal.agent_split} />
+        </>
+        )}
+        {tab === 'mensual' && <MonthlyTable goal={goal} revenue={revenue} year={year} />}
+        {tab === 'ratios' && (
+          <div className="grid-2 align-start">
+            <Ratios totals={totals} acts={yearActs} />
+            <WeeklyTable year={year} goal={goal} />
+          </div>
+        )}
+        {tab === 'gastos' && <Expenses year={year} agentSplit={goal.agent_split} />}
       </div>
     </>
   );

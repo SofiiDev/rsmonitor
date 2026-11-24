@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import type { Contact, FamilyDate } from '../lib/types';
 import {
   BOND_QUALITY,
@@ -13,13 +13,24 @@ import {
   ROLES,
   URGENCY,
 } from '../lib/options';
-import { ChipGroup, Section, SelectField, TextArea, TextField, TriState } from './Fields';
+import { ChipGroup, SelectField, TextArea, TextField, TriState } from './Fields';
 import { Icon } from './Icon';
 import { NextActionDate } from './NextActionDate';
 import { today } from '../lib/dates';
 import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
 
 type Draft = Omit<Contact, 'id'> & { id?: string };
+
+const SECTIONS = ["Identificación y contacto", "La relación", "Información personal", "Oportunidad inmobiliaria", "Observaciones"];
+
+/** Una sección de la ficha: todas quedan en el formulario, solo se ve la elegida (menos scroll). */
+function TabPanel({ title, active, children }: { title: string; active: string; children: ReactNode }) {
+  return (
+    <div role="tabpanel" aria-label={title} hidden={active !== title} className="form-grid">
+      {children}
+    </div>
+  );
+}
 
 export function ContactForm({
   initial,
@@ -36,6 +47,7 @@ export function ContactForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [nameError, setNameError] = useState<string | undefined>();
+  const [sec, setSec] = useState<string>(SECTIONS[0]);
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setC((p) => ({ ...p, [k]: v }));
   // Atajo para campos de texto: guarda null si queda vacío.
@@ -95,7 +107,15 @@ export function ContactForm({
       />
       {c.level && <p className="hint muted small">{LEVELS.find((l) => l.value === c.level)?.description}</p>}
 
-      <Section title="Identificación y contacto" open>
+      <div className="tabs form-tabs" role="tablist" aria-label="Secciones de la ficha">
+        {SECTIONS.map((title) => (
+          <button key={title} type="button" role="tab" aria-selected={sec === title} onClick={() => setSec(title)}>
+            {title}
+          </button>
+        ))}
+      </div>
+
+      <TabPanel title="Identificación y contacto" active={sec}>
         <TextField label="Fecha de nacimiento" type="date" {...t('birthday')} />
         <TextField label="Barrio / localidad" {...t('neighborhood')} />
         <TextField label="Redes (Instagram, LinkedIn…)" {...t('social')} />
@@ -104,9 +124,9 @@ export function ContactForm({
         <TextField label="Cómo llegó a vos" {...t('source')} />
         <TextField label="Quién lo recomendó" {...t('referred_by')} />
         <TextField label="Fecha de ingreso a la base" type="date" {...t('joined_on')} />
-      </Section>
+      </TabPanel>
 
-      <Section title="La relación" open>
+      <TabPanel title="La relación" active={sec}>
         <SelectField label="Tipo de vínculo" options={BOND_TYPES} {...t('bond_type')} />
         <SelectField label="Frecuencia de contacto sugerida" options={FREQUENCIES} {...t('contact_frequency')} />
         <SelectField label="Estado de la relación" options={RELATIONSHIP_STATUS} {...t('relationship_status')} />
@@ -119,9 +139,9 @@ export function ContactForm({
           <input type="checkbox" checked={c.do_not_contact} onChange={(e) => set('do_not_contact', e.target.checked)} />
           No contactar / pidió baja de comunicaciones
         </label>
-      </Section>
+      </TabPanel>
 
-      <Section title="Información personal" open>
+      <TabPanel title="Información personal" active={sec}>
         <TextField
           label="Profesión / actividad"
           {...t('occupation')}
@@ -143,9 +163,9 @@ export function ContactForm({
         <FamilyDatesEditor className="span-2" value={c.family_dates ?? []} onChange={(v) => set('family_dates', v)} />
         <TextArea label="Otras fechas o acontecimientos importantes" className="span-2" rows={2} {...t('important_dates')} />
         <TextArea label="Intereses, valores o temas importantes" className="span-2" rows={2} {...t('values_notes')} />
-      </Section>
+      </TabPanel>
 
-      <Section title="Oportunidad inmobiliaria" open>
+      <TabPanel title="Oportunidad inmobiliaria" active={sec}>
         <SelectField label="Situación actual" options={OPPORTUNITY_STATUS} {...t('opportunity_status')} />
         <SelectField label="Tipo de operación" options={OPERATION_TYPES} {...t('operation_type')} />
         <SelectField label="Rol" options={ROLES} {...t('role')} />
@@ -164,11 +184,11 @@ export function ContactForm({
         <TextField label="Otros decisores involucrados" {...t('other_deciders')} />
         <TextField label="Competencia (¿habla con otras inmobiliarias?)" {...t('competition')} />
         <TextArea label="Obstáculos o dudas" className="span-2" rows={2} {...t('obstacles')} />
-      </Section>
+      </TabPanel>
 
-      <Section title="Observaciones" open>
+      <TabPanel title="Observaciones" active={sec}>
         <TextArea label="Observaciones generales" className="span-2" rows={4} {...t('notes')} />
-      </Section>
+      </TabPanel>
 
       <div className="form-actions">
         {onDelete && (

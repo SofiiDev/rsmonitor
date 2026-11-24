@@ -135,7 +135,7 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
 
       <fieldset>
         <legend>Tipo de actividad</legend>
-        <div className="stack-sm">
+        <div className="stack-sm type-groups-grid">
           {CATEGORIES.map((cat) => (
             <div key={cat.value} className={`type-group cat-${cat.value}`} role="group" aria-labelledby={`cat-${cat.value}`}>
               <span id={`cat-${cat.value}`} className="type-group-label">
@@ -159,7 +159,7 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
         <TextField
           label="Descripción"
           required
-          className="span-2"
+          className="span-desc"
           value={a.title}
           onChange={(v) => {
             set('title', v);
@@ -168,6 +168,13 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
           error={titleError}
           placeholder={ACTIVITY_TYPES.find((t) => t.value === a.type)?.hint}
         />
+        <SelectField
+          label="Contacto"
+          value={a.contact_id}
+          onChange={(v) => set('contact_id', v || null)}
+          placeholder="Ninguno"
+          options={contacts.map((c) => ({ value: c.id, label: c.full_name }))}
+        />
         <div className="stack-sm">
           <TextField
             label="Fecha"
@@ -175,7 +182,6 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
             required
             value={a.date}
             onChange={(v) => setDate(v || a.date)}
-            hint="Podés cargar actividades de días anteriores."
           />
           <div className="row" role="group" aria-label="Atajos de fecha">
             {[
@@ -212,13 +218,6 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
             { value: 'hecha', label: 'Hecha' },
           ]}
         />
-        <SelectField
-          label="Contacto"
-          value={a.contact_id}
-          onChange={(v) => set('contact_id', v || null)}
-          placeholder="Ninguno"
-          options={contacts.map((c) => ({ value: c.id, label: c.full_name }))}
-        />
       </div>
 
       {needsOperation && (
@@ -245,17 +244,17 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
         </div>
       )}
 
-      <div className="form-grid">
-        <TextArea label="Resultado / información nueva" className="span-2" rows={2} value={a.result} onChange={(v) => set('result', str(v))} />
-        <TextField label="Próxima acción" value={a.next_action} onChange={(v) => set('next_action', str(v))} />
-        <NextActionDate value={a.next_action_date} onChange={(v) => set('next_action_date', v)} base={a.date} baseLabel="de la actividad" />
+      <div className="form-grid form-grid-2">
+        <TextArea label="Resultado / información nueva" className="half" rows={2} value={a.result} onChange={(v) => set('result', str(v))} />
+        <TextArea label="Observaciones" className="half" rows={2} value={a.notes} onChange={(v) => set('notes', str(v))} />
+        <TextField label="Próxima acción" className="half" value={a.next_action} onChange={(v) => set('next_action', str(v))} />
+        <NextActionDate className="half" value={a.next_action_date} onChange={(v) => set('next_action_date', v)} base={a.date} baseLabel="de la actividad" />
         {contact && a.next_action && (
           <label className="check span-2">
             <input type="checkbox" checked={updateContact} onChange={(e) => setUpdateContact(e.target.checked)} />
             Actualizar la próxima acción en la ficha de {contact.full_name}
           </label>
         )}
-        <TextArea label="Observaciones" className="span-2" rows={2} value={a.notes} onChange={(v) => set('notes', str(v))} />
       </div>
 
       <div className="form-actions">

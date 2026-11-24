@@ -131,12 +131,9 @@ export function ContactTimeline({
           >
             <Icon name="plus" />
             Acción pasada
+            <span className="visually-hidden"> (llamada, reunión, visita u otra, con la fecha que elijas)</span>
           </button>
         </div>
-        <p className="muted small">
-          Una llamada, reunión, visita o lo que hayas hecho antes con {contact.full_name.split(' ')[0]}: elegí el tipo y la fecha, y queda guardada en el
-          historial.
-        </p>
         <NoteComposer contactId={contact.id} today={t} />
       </section>
 
@@ -274,7 +271,7 @@ function NoteComposer({ contactId, today: t }: { contactId: string; today: strin
       </label>
       <textarea
         id={`note-${contactId}`}
-        rows={2}
+        rows={1}
         placeholder="Algo que te contó, un dato a recordar, cómo quedó la charla…"
         value={text}
         onChange={(e) => setText(e.target.value)}
