@@ -11,6 +11,7 @@ import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
 import { useActivityEditor } from '../components/ActivityEditor';
 import { ContactTimeline } from '../components/ContactTimeline';
+import { RelatedPeople } from '../components/RelatedPeople';
 import { OpportunityBar, QualityLight } from '../components/Indicators';
 import { contactQuality, opportunityLevel } from '../lib/scores';
 import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
@@ -149,6 +150,8 @@ export function ContactDetail() {
             <span className="stat-value">{history.length}</span>
           </div>
         </div>
+
+        <RelatedPeople contact={c} />
 
         <div className="contact-indicators">
           <div className="stat">

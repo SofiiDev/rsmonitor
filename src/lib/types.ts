@@ -48,6 +48,8 @@ export interface Contact {
   next_action_date: string | null;
   next_action_reason: string | null;
   related_people: string | null;
+  /** Vínculos con otros contactos de la base (requiere la migración 006). */
+  related_contacts?: { id: string; relation: string }[];
   do_not_contact: boolean;
 
   occupation: string | null;

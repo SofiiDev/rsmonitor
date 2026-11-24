@@ -34,6 +34,7 @@ create table if not exists public.contacts (
   next_action_date date,
   next_action_reason text,
   related_people   text,
+  related_contacts jsonb not null default '[]'::jsonb, -- [{id, relation}] vínculos con otros contactos
   do_not_contact   boolean not null default false,
 
   -- Información personal
