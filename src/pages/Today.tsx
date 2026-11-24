@@ -77,7 +77,7 @@ export function Today() {
             </div>
           )}
 
-          <QuickAdd date={t} onMore={(title) => openEditor({ date: t, done: false, title })} />
+          <QuickAdd date={t} onMore={(title, day) => openEditor({ date: day, title })} />
 
           {(agenda.overdueActivities.length > 0 || agenda.overdueContacts.length > 0) && (
             <TaskGroup title="Atrasado" tone="danger" count={agenda.overdueActivities.length + agenda.overdueContacts.length}>
@@ -371,35 +371,39 @@ function ContactTask({ c, today }: { c: Contact; today: string }) {
   );
 }
 
-function QuickAdd({ date, onMore }: { date: string; onMore: (title: string) => void }) {
+function QuickAdd({ date, onMore }: { date: string; onMore: (title: string, day: string) => void }) {
   const { create, contacts } = useStore();
   const toast = useToast();
   const [title, setTitle] = useState('');
   const [contactId, setContactId] = useState('');
   const [time, setTime] = useState('');
+  const [day, setDay] = useState(date);
   const [type, setType] = useState<ActivityType>('contacto');
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
     try {
-      await create('activities', { date, time: time || null, done: false, type, title: title.trim(), contact_id: contactId || null });
+      // Si es de un día anterior, se registra como hecha; si es de hoy o futura, queda pendiente.
+      const past = day < date;
+      await create('activities', { date: day, time: time || null, done: past, type, title: title.trim(), contact_id: contactId || null });
       setTitle('');
       setContactId('');
       setTime('');
-      toast('Agregada a hoy');
+      setDay(date);
+      toast(past ? 'Actividad pasada registrada' : day === date ? 'Agregada a hoy' : 'Actividad agendada');
     } catch (err) {
       toast(err instanceof Error ? `Error: ${err.message}` : 'No se pudo guardar');
     }
   }
 
   return (
-    <form className="quick-add" onSubmit={submit} aria-label="Agregar tarea para hoy">
+    <form className="quick-add" onSubmit={submit} aria-label="Agregar actividad">
       <div className="field grow">
         <label htmlFor="qa-title" className="visually-hidden">
           Qué tenés que hacer
         </label>
-        <input id="qa-title" placeholder="Agregar algo para hoy…" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
+        <input id="qa-title" placeholder="Agregar una actividad (hoy, pasada o futura)…" value={title} onChange={(e) => setTitle(e.target.value)} autoComplete="off" />
       </div>
       <div className="field">
         <label htmlFor="qa-type" className="visually-hidden">
@@ -431,6 +435,12 @@ function QuickAdd({ date, onMore }: { date: string; onMore: (title: string) => v
         </select>
       </div>
       <div className="field">
+        <label htmlFor="qa-day" className="visually-hidden">
+          Fecha
+        </label>
+        <input id="qa-day" type="date" value={day} onChange={(e) => setDay(e.target.value || date)} />
+      </div>
+      <div className="field">
         <label htmlFor="qa-time" className="visually-hidden">
           Hora (opcional)
         </label>
@@ -441,7 +451,7 @@ function QuickAdd({ date, onMore }: { date: string; onMore: (title: string) => v
           <Icon name="plus" />
           Agregar
         </button>
-        <button type="button" className="btn" onClick={() => onMore(title)}>
+        <button type="button" className="btn" onClick={() => onMore(title, day)}>
           Más detalles
         </button>
       </div>

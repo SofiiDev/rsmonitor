@@ -1705,3 +1705,9 @@ button.tl-body:hover {
   width: 32px;
   min-height: 32px;
 }
+
+.btn-sm {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.8125rem;
+}

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useState, type FormEvent, type ReactNode } from 'react';
 import { useStore } from '../lib/store';
-import { today } from '../lib/dates';
+import { addDays, today } from '../lib/dates';
 import type { Activity, ActivityType, Operation } from '../lib/types';
 import { emptyActivity } from '../lib/empty';
 import {
@@ -66,6 +66,8 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setA((p) => ({ ...p, [k]: v }));
   const str = (v: string) => (v.trim() === '' ? null : v);
+  // Una fecha pasada queda como hecha; una futura, como agendada (salvo que la usuaria elija otra cosa).
+  const setDate = (date: string) => setA((p) => ({ ...p, date, done: doneTouched ? p.done : date <= today() }));
 
   const needsOperation = TYPES_WITH_OPERATION.includes(a.type);
   const contact = contacts.find((c) => c.id === a.contact_id);
@@ -165,16 +167,36 @@ function ActivityForm({ initial, options, onDone }: { initial: Draft; options: E
           error={titleError}
           placeholder={ACTIVITY_TYPES.find((t) => t.value === a.type)?.hint}
         />
-        <TextField
-          label="Fecha"
-          type="date"
-          required
-          value={a.date}
-          onChange={(v) => {
-            const date = v || a.date;
-            setA((p) => ({ ...p, date, done: doneTouched ? p.done : date <= today() }));
-          }}
-        />
+        <div className="stack-sm">
+          <TextField
+            label="Fecha"
+            type="date"
+            required
+            value={a.date}
+            onChange={(v) => setDate(v || a.date)}
+            hint="Podés cargar actividades de días anteriores."
+          />
+          <div className="row" role="group" aria-label="Atajos de fecha">
+            {[
+              { label: 'Hoy', days: 0 },
+              { label: 'Ayer', days: -1 },
+              { label: 'Anteayer', days: -2 },
+            ].map((d) => {
+              const value = addDays(today(), d.days);
+              return (
+                <button
+                  key={d.label}
+                  type="button"
+                  className={`btn btn-sm ${a.date === value ? 'btn-primary' : ''}`}
+                  aria-pressed={a.date === value}
+                  onClick={() => setDate(value)}
+                >
+                  {d.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <TextField label="Hora (opcional)" type="time" value={a.time} onChange={(v) => set('time', str(v))} />
         <ChipGroup<'hecha' | 'pendiente'>
           legend="Estado"
