@@ -38,12 +38,12 @@ export function Login() {
         const { data, error: err } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: window.location.origin + import.meta.env.BASE_URL },
         });
         if (err) throw err;
         if (!data.session) setInfo('Te enviamos un email para confirmar tu cuenta. Abrilo y después iniciá sesión.');
       } else {
-        const { error: err } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+        const { error: err } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + import.meta.env.BASE_URL });
         if (err) throw err;
         setInfo('Si el email está registrado, vas a recibir un enlace para cambiar la contraseña.');
       }
