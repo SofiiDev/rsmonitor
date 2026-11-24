@@ -8,6 +8,9 @@ import { formatShort, relativeDay, today } from '../lib/dates';
 import { PageHeader } from '../components/Layout';
 import { Icon } from '../components/Icon';
 import { LevelBadge } from '../components/Bits';
+import { OpportunityBar, QualityLight } from '../components/Indicators';
+import { contactQuality, opportunityLevel, type Light } from '../lib/scores';
+import type { Contact } from '../lib/types';
 import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
 import { useToast } from '../components/Toast';
@@ -23,6 +26,7 @@ export function Contacts() {
   const q = params.get('q') ?? '';
   const level = params.get('nivel') ?? '';
   const opp = params.get('oportunidad') ?? '';
+  const order = params.get('orden') ?? '';
   const t = today();
 
   const setParam = (k: string, v: string) => {
@@ -41,6 +45,18 @@ export function Contacts() {
       return [c.full_name, c.phone, c.email, c.neighborhood, c.notes].some((f) => f && normalize(f).includes(nq));
     });
   }, [contacts, q, level, opp]);
+
+  const sorted = useMemo(() => {
+    if (!order) return filtered;
+    // "Sin datos" (gris) siempre al final.
+    const rank: Record<Light, number> =
+      order === 'semaforo-rojo' ? { rojo: 0, amarillo: 1, verde: 2, gris: 3 } : { verde: 0, amarillo: 1, rojo: 2, gris: 3 };
+    const key = (c: Contact) => (order === 'oportunidad' ? -opportunityLevel(c).score : rank[contactQuality(c, activities).light]);
+    return filtered
+      .map((c) => ({ c, k: key(c) }))
+      .sort((a, b) => a.k - b.k)
+      .map((x) => x.c);
+  }, [filtered, order, activities]);
 
   const counts = useMemo(() => {
     const out: Record<string, number> = { A: 0, B: 0, C: 0, D: 0 };
@@ -95,6 +111,17 @@ export function Contacts() {
             ))}
           </select>
         </div>
+        <div className="field">
+          <label htmlFor="orden" className="visually-hidden">
+            Ordenar
+          </label>
+          <select id="orden" value={order} onChange={(e) => setParam('orden', e.target.value)}>
+            <option value="">Orden: nombre</option>
+            <option value="oportunidad">Orden: mayor oportunidad</option>
+            <option value="semaforo-verde">Orden: semáforo verde primero</option>
+            <option value="semaforo-rojo">Orden: semáforo rojo primero</option>
+          </select>
+        </div>
       </div>
 
       <p className="visually-hidden" role="status" aria-live="polite">
@@ -115,7 +142,7 @@ export function Contacts() {
           </div>
         ) : (
           <ul className="list">
-            {filtered.map((c) => {
+            {sorted.map((c) => {
               const last = lastContactDate(c.id, activities);
               return (
                 <li key={c.id}>
@@ -125,6 +152,10 @@ export function Contacts() {
                       <span className="title">{c.full_name}</span>
                       <span className="meta" style={{ display: 'block' }}>
                         {[c.neighborhood, c.opportunity_status, last ? `último contacto ${formatShort(last)}` : null].filter(Boolean).join(' · ') || 'Sin datos adicionales'}
+                      </span>
+                      <span className="indicators">
+                        <QualityLight result={contactQuality(c, activities)} />
+                        <OpportunityBar result={opportunityLevel(c)} />
                       </span>
                     </span>
                     {c.next_action_date && (

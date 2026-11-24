@@ -2186,3 +2186,112 @@ button.tl-body:hover {
     overflow-wrap: anywhere;
   }
 }
+
+
+/* ───────────────────────── Semáforo y nivel de oportunidad ───────────────────────── */
+:root {
+  --light-verde: #0ca30c;
+  --light-amarillo: #fab219;
+  --light-rojo: #d03b3b;
+  --lamp-off: #dde3ea;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --lamp-off: #2a374b;
+  }
+}
+.indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 6px;
+}
+.quality,
+.opp {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+.quality-text,
+.opp-text {
+  display: grid;
+  gap: 2px;
+}
+.quality-label,
+.opp-label {
+  font-weight: 600;
+  color: var(--text);
+}
+.quality-reason {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+.traffic {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px 5px;
+  border-radius: 999px;
+  background: var(--nav-bg);
+}
+.lamp {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--lamp-off);
+  opacity: 0.35;
+}
+.lamp.is-on {
+  opacity: 1;
+  box-shadow: 0 0 6px currentColor;
+}
+.lamp-rojo.is-on { background: var(--light-rojo); color: var(--light-rojo); }
+.lamp-amarillo.is-on { background: var(--light-amarillo); color: var(--light-amarillo); }
+.lamp-verde.is-on { background: var(--light-verde); color: var(--light-verde); }
+.quality-lg .traffic {
+  padding: 5px 8px;
+  gap: 5px;
+}
+.quality-lg .lamp {
+  width: 16px;
+  height: 16px;
+}
+.quality-lg,
+.opp-lg {
+  font-size: 0.9375rem;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.opp-bar {
+  display: inline-flex;
+  gap: 2px;
+}
+.opp-seg {
+  width: 10px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--lamp-off);
+}
+.opp-seg.is-on.step-1 { background: var(--viz-step-0); }
+.opp-seg.is-on.step-2 { background: var(--viz-step-1); }
+.opp-seg.is-on.step-3 { background: var(--viz-step-2); }
+.opp-seg.is-on.step-4 { background: var(--viz-step-3); }
+.opp-seg.is-on.step-5 { background: var(--viz-step-3); }
+.opp-lg .opp-bar {
+  margin-top: 4px;
+  gap: 3px;
+}
+.opp-lg .opp-seg {
+  width: 24px;
+  height: 12px;
+}
+
+.contact-indicators {
+  display: grid;
+  gap: 12px;
+}
+@media (min-width: 720px) {
+  .contact-indicators { grid-template-columns: 1fr 1fr; }
+}

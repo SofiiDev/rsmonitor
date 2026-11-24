@@ -11,6 +11,8 @@ import { Sheet } from '../components/Sheet';
 import { ContactForm } from '../components/ContactForm';
 import { useActivityEditor } from '../components/ActivityEditor';
 import { ContactTimeline } from '../components/ContactTimeline';
+import { OpportunityBar, QualityLight } from '../components/Indicators';
+import { contactQuality, opportunityLevel } from '../lib/scores';
 import { formatProfessionDate, professionDaysFor } from '../lib/professionDays';
 import { useToast } from '../components/Toast';
 
@@ -146,9 +148,16 @@ export function ContactDetail() {
             <span className="stat-label">Cantidad de contactos</span>
             <span className="stat-value">{history.length}</span>
           </div>
+        </div>
+
+        <div className="contact-indicators">
           <div className="stat">
-            <span className="stat-label">Oportunidad</span>
-            <span>{c.opportunity_status ?? '—'}</span>
+            <span className="stat-label">Calidad del contacto</span>
+            <QualityLight result={contactQuality(c, activities)} size="lg" showReason />
+          </div>
+          <div className="stat">
+            <span className="stat-label">Nivel de oportunidad</span>
+            <OpportunityBar result={opportunityLevel(c)} size="lg" showReason />
           </div>
         </div>
 
